@@ -5,6 +5,7 @@ export class Player extends Schema {
   @type("number") x: number = 0;
   @type("number") y: number = 0;
   @type("number") z: number = 0;
+  @type("number") yaw: number = 0;
   @type("string") animState: string = "idle";
 }
 
@@ -64,6 +65,7 @@ export class OfficeRoom extends Room<OfficeState> {
       if (typeof data.x === 'number') player.x = data.x;
       if (typeof data.y === 'number') player.y = data.y;
       if (typeof data.z === 'number') player.z = data.z;
+      if (typeof data.yaw === 'number') player.yaw = data.yaw;
       if (typeof data.animState === 'string') player.animState = data.animState;
     }
   }

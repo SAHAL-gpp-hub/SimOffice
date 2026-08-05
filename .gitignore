@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.DS_Store
+.env
+spikes/m01b/client/node_modules/
+spikes/m01b/server/node_modules/
+spikes/m01b/client/dist/
+spikes/m01b/server/dist/

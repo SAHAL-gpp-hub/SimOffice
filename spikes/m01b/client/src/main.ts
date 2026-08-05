@@ -15,7 +15,7 @@ let room: Colyseus.Room | null = null;
 
 // Game State
 const players: { [sessionId: string]: BABYLON.Mesh } = {};
-const interpolationBuffers: { [sessionId: string]: { time: number, x: number, y: number, z: number, animState: string }[] } = {};
+const interpolationBuffers: { [sessionId: string]: { time: number, x: number, y: number, z: number, yaw: number, animState: string }[] } = {};
 
 // Engine & Scene
 const engine = new BABYLON.Engine(canvas, true);
@@ -47,10 +47,36 @@ scene.onKeyboardObservable.add((kbInfo) => {
     }
 });
 
-// Ensure canvas can receive keyboard events when clicked
+const MOUSE_SENSITIVITY = 0.005;
+
+// Pointer Lock and Aiming
+document.addEventListener("pointerlockchange", () => {
+    if (document.pointerLockElement === canvas) {
+        // Locked
+    } else {
+        // Unlocked (e.g., user pressed ESC)
+        // Babylon handles this gracefully, but we can reset any UI state here if needed
+    }
+});
+
+document.addEventListener("pointerlockerror", () => {
+    console.error("Pointer lock failed.");
+});
+
 scene.onPointerObservable.add((pointerInfo) => {
     if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOWN) {
         canvas.focus();
+        if (document.pointerLockElement !== canvas) {
+            canvas.requestPointerLock();
+        }
+    } else if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERMOVE) {
+        if (document.pointerLockElement === canvas && activeCamera instanceof BABYLON.ArcRotateCamera) {
+            const evt = pointerInfo.event as PointerEvent;
+            
+            // Mouse sensitivity
+            activeCamera.alpha -= evt.movementX * MOUSE_SENSITIVITY;
+            activeCamera.beta -= evt.movementY * MOUSE_SENSITIVITY;
+        }
     }
 });
 
@@ -120,6 +146,7 @@ async function connect() {
                         x: player.x,
                         y: player.y,
                         z: player.z,
+                        yaw: player.yaw,
                         animState: player.animState
                     });
                 }
@@ -155,11 +182,14 @@ function setupCamera(targetMesh: BABYLON.Mesh) {
         scene
     );
 
-    camera.attachControl(canvas, true);
+    // We DO NOT attachControl here because we are manually driving alpha/beta via pointer lock
+    // camera.attachControl(canvas, true);
     
     // Limits
     camera.lowerRadiusLimit = 1.0;
     camera.upperRadiusLimit = 8.0;
+    camera.lowerBetaLimit = 0.1;
+    camera.upperBetaLimit = Math.PI - 0.1;
     camera.wheelPrecision = 50; // although GDD says no user zoom, keep basic for dev
 
     // Set height offset removed to ensure capsule stays centered
@@ -219,11 +249,17 @@ scene.onBeforeRenderObservable.add(() => {
         myPlayer.position.y += verticalVelocity * deltaTime;
 
         // 2. WASD Movement (Camera relative)
-        let forward = activeCamera.getDirection(BABYLON.Vector3.Forward());
+        let forward = BABYLON.Vector3.Forward();
+        let right = BABYLON.Vector3.Right();
+        
+        if (activeCamera instanceof BABYLON.ArcRotateCamera) {
+            forward = activeCamera.getDirection(BABYLON.Vector3.Forward());
+            right = activeCamera.getDirection(BABYLON.Vector3.Right());
+        }
+        
         forward.y = 0;
         forward.normalize();
         
-        let right = activeCamera.getDirection(BABYLON.Vector3.Right());
         right.y = 0;
         right.normalize();
 
@@ -242,10 +278,11 @@ scene.onBeforeRenderObservable.add(() => {
             moveVector.normalize();
             myPlayer.position.addInPlace(moveVector.scale(speed * deltaTime));
             animState = isRunning ? "run" : "walk";
-            
-            // Rotate player to face movement direction
-            const targetAngle = Math.atan2(moveVector.x, moveVector.z);
-            myPlayer.rotation.y = targetAngle;
+        }
+        
+        // Always rotate player to face the camera's forward direction (Minecraft style)
+        if (activeCamera instanceof BABYLON.ArcRotateCamera) {
+            myPlayer.rotation.y = -activeCamera.alpha - (Math.PI / 2);
         }
 
         if (!isGrounded) animState = "jump";
@@ -257,6 +294,7 @@ scene.onBeforeRenderObservable.add(() => {
                 x: myPlayer.position.x,
                 y: myPlayer.position.y,
                 z: myPlayer.position.z,
+                yaw: myPlayer.rotation.y,
                 animState: animState
             });
             lastNetworkSend = now;
@@ -287,11 +325,12 @@ scene.onBeforeRenderObservable.add(() => {
             playerMesh.position.y = BABYLON.Scalar.Lerp(p0.y, p1.y, t);
             playerMesh.position.z = BABYLON.Scalar.Lerp(p0.z, p1.z, t);
 
-            // Simple rotation interpolation based on movement direction
-            if (p1.x !== p0.x || p1.z !== p0.z) {
-                const targetAngle = Math.atan2(p1.x - p0.x, p1.z - p0.z);
-                // Basic angle lerp (could be improved with quaternions)
-                playerMesh.rotation.y = targetAngle;
+            if (p0.yaw !== undefined && p1.yaw !== undefined) {
+                // Shortest path angle lerp
+                let angleDiff = p1.yaw - p0.yaw;
+                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                playerMesh.rotation.y = p0.yaw + (angleDiff * t);
             }
 
         } else if (buffer.length === 1 && renderTime > buffer[0].time) {

@@ -1,0 +1,367 @@
+
+> server@0.0.1 test /Users/mohammad/Documents/simoffice/server
+> jest
+
+FAIL src/auth/auth.controller.spec.ts
+  ● AuthController › should be defined
+
+    Nest can't resolve dependencies of the ThrottlerGuard (?, Symbol(ThrottlerStorage), Reflector). Please make sure that the argument "THROTTLER:MODULE_OPTIONS" at index [0] is available in the RootTestModule module.
+
+    Potential solutions:
+    - Is RootTestModule a valid NestJS module?
+    - If "THROTTLER:MODULE_OPTIONS" is a provider, is it part of the current RootTestModule?
+    - If "THROTTLER:MODULE_OPTIONS" is exported from a separate @Module, is that module imported within RootTestModule?
+      @Module({
+        imports: [ /* the Module containing "THROTTLER:MODULE_OPTIONS" */ ]
+      })
+
+    For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+
+       7 |
+       8 |   beforeEach(async () => {
+    >  9 |     const module: TestingModule = await Test.createTestingModule({
+         |                                   ^
+      10 |       controllers: [AuthController],
+      11 |       providers: [{ provide: AuthService, useValue: {} }],
+      12 |     })
+
+      at TestingInjector.lookupComponentInParentModules (../node_modules/@nestjs/core/injector/injector.js:300:19)
+      at TestingInjector.resolveComponentWrapper (../node_modules/@nestjs/testing/testing-injector.js:19:45)
+      at resolveParam (../node_modules/@nestjs/core/injector/injector.js:150:38)
+          at async Promise.all (index 0)
+      at TestingInjector.resolveConstructorParams (../node_modules/@nestjs/core/injector/injector.js:179:27)
+      at TestingInjector.loadInstance (../node_modules/@nestjs/core/injector/injector.js:77:13)
+      at TestingInjector.loadInjectable (../node_modules/@nestjs/core/injector/injector.js:104:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:80:13
+          at async Promise.all (index 0)
+      at TestingInstanceLoader.createInstancesOfInjectables (../node_modules/@nestjs/core/injector/instance-loader.js:79:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:41:13
+          at async Promise.all (index 1)
+      at TestingInstanceLoader.createInstances (../node_modules/@nestjs/core/injector/instance-loader.js:39:9)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/core/injector/instance-loader.js:22:13)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-instance-loader.js:9:9)
+      at TestingModuleBuilder.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-module.builder.js:119:9)
+      at TestingModuleBuilder.compile (../node_modules/@nestjs/testing/testing-module.builder.js:74:9)
+      at Object.<anonymous> (auth/auth.controller.spec.ts:9:35)
+
+FAIL src/sessions/sessions.controller.spec.ts
+  ● SessionsController › should be defined
+
+    Nest can't resolve dependencies of the JoinCodeThrottlerGuard (?, Symbol(ThrottlerStorage), Reflector). Please make sure that the argument "THROTTLER:MODULE_OPTIONS" at index [0] is available in the RootTestModule module.
+
+    Potential solutions:
+    - Is RootTestModule a valid NestJS module?
+    - If "THROTTLER:MODULE_OPTIONS" is a provider, is it part of the current RootTestModule?
+    - If "THROTTLER:MODULE_OPTIONS" is exported from a separate @Module, is that module imported within RootTestModule?
+      @Module({
+        imports: [ /* the Module containing "THROTTLER:MODULE_OPTIONS" */ ]
+      })
+
+    For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+
+       8 |
+       9 |   beforeEach(async () => {
+    > 10 |     const module: TestingModule = await Test.createTestingModule({
+         |                                   ^
+      11 |       controllers: [SessionsController, ClassesController],
+      12 |       providers: [{ provide: SessionsService, useValue: {} }],
+      13 |     })
+
+      at TestingInjector.lookupComponentInParentModules (../node_modules/@nestjs/core/injector/injector.js:300:19)
+      at TestingInjector.resolveComponentWrapper (../node_modules/@nestjs/testing/testing-injector.js:19:45)
+      at resolveParam (../node_modules/@nestjs/core/injector/injector.js:150:38)
+          at async Promise.all (index 0)
+      at TestingInjector.resolveConstructorParams (../node_modules/@nestjs/core/injector/injector.js:179:27)
+      at TestingInjector.loadInstance (../node_modules/@nestjs/core/injector/injector.js:77:13)
+      at TestingInjector.loadInjectable (../node_modules/@nestjs/core/injector/injector.js:104:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:80:13
+          at async Promise.all (index 0)
+      at TestingInstanceLoader.createInstancesOfInjectables (../node_modules/@nestjs/core/injector/instance-loader.js:79:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:41:13
+          at async Promise.all (index 1)
+      at TestingInstanceLoader.createInstances (../node_modules/@nestjs/core/injector/instance-loader.js:39:9)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/core/injector/instance-loader.js:22:13)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-instance-loader.js:9:9)
+      at TestingModuleBuilder.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-module.builder.js:119:9)
+      at TestingModuleBuilder.compile (../node_modules/@nestjs/testing/testing-module.builder.js:74:9)
+      at Object.<anonymous> (sessions/sessions.controller.spec.ts:10:35)
+
+FAIL src/sessions/sessions.service.spec.ts
+  ● SessionsService › should be defined
+
+    Nest can't resolve dependencies of the SessionsService (DbService, ?). Please make sure that the argument Symbol(SANDBOX_PROVIDER) at index [1] is available in the RootTestModule module.
+
+    Potential solutions:
+    - Is RootTestModule a valid NestJS module?
+    - If Symbol(SANDBOX_PROVIDER) is a provider, is it part of the current RootTestModule?
+    - If Symbol(SANDBOX_PROVIDER) is exported from a separate @Module, is that module imported within RootTestModule?
+      @Module({
+        imports: [ /* the Module containing Symbol(SANDBOX_PROVIDER) */ ]
+      })
+
+    For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+
+      21 |     };
+      22 |
+    > 23 |     const module: TestingModule = await Test.createTestingModule({
+         |                                   ^
+      24 |       providers: [SessionsService, { provide: DbService, useValue: dbService }],
+      25 |     }).compile();
+      26 |
+
+      at TestingInjector.lookupComponentInParentModules (../node_modules/@nestjs/core/injector/injector.js:300:19)
+      at TestingInjector.resolveComponentWrapper (../node_modules/@nestjs/testing/testing-injector.js:19:45)
+      at resolveParam (../node_modules/@nestjs/core/injector/injector.js:150:38)
+          at async Promise.all (index 1)
+      at TestingInjector.resolveConstructorParams (../node_modules/@nestjs/core/injector/injector.js:179:27)
+      at TestingInjector.loadInstance (../node_modules/@nestjs/core/injector/injector.js:77:13)
+      at TestingInjector.loadProvider (../node_modules/@nestjs/core/injector/injector.js:111:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:56:13
+          at async Promise.all (index 3)
+      at TestingInstanceLoader.createInstancesOfProviders (../node_modules/@nestjs/core/injector/instance-loader.js:55:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:40:13
+          at async Promise.all (index 1)
+      at TestingInstanceLoader.createInstances (../node_modules/@nestjs/core/injector/instance-loader.js:39:9)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/core/injector/instance-loader.js:22:13)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-instance-loader.js:9:9)
+      at TestingModuleBuilder.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-module.builder.js:119:9)
+      at TestingModuleBuilder.compile (../node_modules/@nestjs/testing/testing-module.builder.js:74:9)
+      at Object.<anonymous> (sessions/sessions.service.spec.ts:23:35)
+
+  ● SessionsService › ownership checks › should throw ForbiddenException if teacher does not own the session
+
+    Nest can't resolve dependencies of the SessionsService (DbService, ?). Please make sure that the argument Symbol(SANDBOX_PROVIDER) at index [1] is available in the RootTestModule module.
+
+    Potential solutions:
+    - Is RootTestModule a valid NestJS module?
+    - If Symbol(SANDBOX_PROVIDER) is a provider, is it part of the current RootTestModule?
+    - If Symbol(SANDBOX_PROVIDER) is exported from a separate @Module, is that module imported within RootTestModule?
+      @Module({
+        imports: [ /* the Module containing Symbol(SANDBOX_PROVIDER) */ ]
+      })
+
+    For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+
+      21 |     };
+      22 |
+    > 23 |     const module: TestingModule = await Test.createTestingModule({
+         |                                   ^
+      24 |       providers: [SessionsService, { provide: DbService, useValue: dbService }],
+      25 |     }).compile();
+      26 |
+
+      at TestingInjector.lookupComponentInParentModules (../node_modules/@nestjs/core/injector/injector.js:300:19)
+      at TestingInjector.resolveComponentWrapper (../node_modules/@nestjs/testing/testing-injector.js:19:45)
+      at resolveParam (../node_modules/@nestjs/core/injector/injector.js:150:38)
+          at async Promise.all (index 1)
+      at TestingInjector.resolveConstructorParams (../node_modules/@nestjs/core/injector/injector.js:179:27)
+      at TestingInjector.loadInstance (../node_modules/@nestjs/core/injector/injector.js:77:13)
+      at TestingInjector.loadProvider (../node_modules/@nestjs/core/injector/injector.js:111:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:56:13
+          at async Promise.all (index 3)
+      at TestingInstanceLoader.createInstancesOfProviders (../node_modules/@nestjs/core/injector/instance-loader.js:55:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:40:13
+          at async Promise.all (index 1)
+      at TestingInstanceLoader.createInstances (../node_modules/@nestjs/core/injector/instance-loader.js:39:9)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/core/injector/instance-loader.js:22:13)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-instance-loader.js:9:9)
+      at TestingModuleBuilder.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-module.builder.js:119:9)
+      at TestingModuleBuilder.compile (../node_modules/@nestjs/testing/testing-module.builder.js:74:9)
+      at Object.<anonymous> (sessions/sessions.service.spec.ts:23:35)
+
+  ● SessionsService › ownership checks › should proceed if teacher owns the session
+
+    Nest can't resolve dependencies of the SessionsService (DbService, ?). Please make sure that the argument Symbol(SANDBOX_PROVIDER) at index [1] is available in the RootTestModule module.
+
+    Potential solutions:
+    - Is RootTestModule a valid NestJS module?
+    - If Symbol(SANDBOX_PROVIDER) is a provider, is it part of the current RootTestModule?
+    - If Symbol(SANDBOX_PROVIDER) is exported from a separate @Module, is that module imported within RootTestModule?
+      @Module({
+        imports: [ /* the Module containing Symbol(SANDBOX_PROVIDER) */ ]
+      })
+
+    For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+
+      21 |     };
+      22 |
+    > 23 |     const module: TestingModule = await Test.createTestingModule({
+         |                                   ^
+      24 |       providers: [SessionsService, { provide: DbService, useValue: dbService }],
+      25 |     }).compile();
+      26 |
+
+      at TestingInjector.lookupComponentInParentModules (../node_modules/@nestjs/core/injector/injector.js:300:19)
+      at TestingInjector.resolveComponentWrapper (../node_modules/@nestjs/testing/testing-injector.js:19:45)
+      at resolveParam (../node_modules/@nestjs/core/injector/injector.js:150:38)
+          at async Promise.all (index 1)
+      at TestingInjector.resolveConstructorParams (../node_modules/@nestjs/core/injector/injector.js:179:27)
+      at TestingInjector.loadInstance (../node_modules/@nestjs/core/injector/injector.js:77:13)
+      at TestingInjector.loadProvider (../node_modules/@nestjs/core/injector/injector.js:111:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:56:13
+          at async Promise.all (index 3)
+      at TestingInstanceLoader.createInstancesOfProviders (../node_modules/@nestjs/core/injector/instance-loader.js:55:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:40:13
+          at async Promise.all (index 1)
+      at TestingInstanceLoader.createInstances (../node_modules/@nestjs/core/injector/instance-loader.js:39:9)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/core/injector/instance-loader.js:22:13)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-instance-loader.js:9:9)
+      at TestingModuleBuilder.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-module.builder.js:119:9)
+      at TestingModuleBuilder.compile (../node_modules/@nestjs/testing/testing-module.builder.js:74:9)
+      at Object.<anonymous> (sessions/sessions.service.spec.ts:23:35)
+
+  ● SessionsService › state transitions › should reject startSession if session is already active (ConflictException)
+
+    Nest can't resolve dependencies of the SessionsService (DbService, ?). Please make sure that the argument Symbol(SANDBOX_PROVIDER) at index [1] is available in the RootTestModule module.
+
+    Potential solutions:
+    - Is RootTestModule a valid NestJS module?
+    - If Symbol(SANDBOX_PROVIDER) is a provider, is it part of the current RootTestModule?
+    - If Symbol(SANDBOX_PROVIDER) is exported from a separate @Module, is that module imported within RootTestModule?
+      @Module({
+        imports: [ /* the Module containing Symbol(SANDBOX_PROVIDER) */ ]
+      })
+
+    For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+
+      21 |     };
+      22 |
+    > 23 |     const module: TestingModule = await Test.createTestingModule({
+         |                                   ^
+      24 |       providers: [SessionsService, { provide: DbService, useValue: dbService }],
+      25 |     }).compile();
+      26 |
+
+      at TestingInjector.lookupComponentInParentModules (../node_modules/@nestjs/core/injector/injector.js:300:19)
+      at TestingInjector.resolveComponentWrapper (../node_modules/@nestjs/testing/testing-injector.js:19:45)
+      at resolveParam (../node_modules/@nestjs/core/injector/injector.js:150:38)
+          at async Promise.all (index 1)
+      at TestingInjector.resolveConstructorParams (../node_modules/@nestjs/core/injector/injector.js:179:27)
+      at TestingInjector.loadInstance (../node_modules/@nestjs/core/injector/injector.js:77:13)
+      at TestingInjector.loadProvider (../node_modules/@nestjs/core/injector/injector.js:111:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:56:13
+          at async Promise.all (index 3)
+      at TestingInstanceLoader.createInstancesOfProviders (../node_modules/@nestjs/core/injector/instance-loader.js:55:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:40:13
+          at async Promise.all (index 1)
+      at TestingInstanceLoader.createInstances (../node_modules/@nestjs/core/injector/instance-loader.js:39:9)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/core/injector/instance-loader.js:22:13)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-instance-loader.js:9:9)
+      at TestingModuleBuilder.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-module.builder.js:119:9)
+      at TestingModuleBuilder.compile (../node_modules/@nestjs/testing/testing-module.builder.js:74:9)
+      at Object.<anonymous> (sessions/sessions.service.spec.ts:23:35)
+
+  ● SessionsService › state transitions › should reject endSession if session is already torn_down
+
+    Nest can't resolve dependencies of the SessionsService (DbService, ?). Please make sure that the argument Symbol(SANDBOX_PROVIDER) at index [1] is available in the RootTestModule module.
+
+    Potential solutions:
+    - Is RootTestModule a valid NestJS module?
+    - If Symbol(SANDBOX_PROVIDER) is a provider, is it part of the current RootTestModule?
+    - If Symbol(SANDBOX_PROVIDER) is exported from a separate @Module, is that module imported within RootTestModule?
+      @Module({
+        imports: [ /* the Module containing Symbol(SANDBOX_PROVIDER) */ ]
+      })
+
+    For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+
+      21 |     };
+      22 |
+    > 23 |     const module: TestingModule = await Test.createTestingModule({
+         |                                   ^
+      24 |       providers: [SessionsService, { provide: DbService, useValue: dbService }],
+      25 |     }).compile();
+      26 |
+
+      at TestingInjector.lookupComponentInParentModules (../node_modules/@nestjs/core/injector/injector.js:300:19)
+      at TestingInjector.resolveComponentWrapper (../node_modules/@nestjs/testing/testing-injector.js:19:45)
+      at resolveParam (../node_modules/@nestjs/core/injector/injector.js:150:38)
+          at async Promise.all (index 1)
+      at TestingInjector.resolveConstructorParams (../node_modules/@nestjs/core/injector/injector.js:179:27)
+      at TestingInjector.loadInstance (../node_modules/@nestjs/core/injector/injector.js:77:13)
+      at TestingInjector.loadProvider (../node_modules/@nestjs/core/injector/injector.js:111:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:56:13
+          at async Promise.all (index 3)
+      at TestingInstanceLoader.createInstancesOfProviders (../node_modules/@nestjs/core/injector/instance-loader.js:55:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:40:13
+          at async Promise.all (index 1)
+      at TestingInstanceLoader.createInstances (../node_modules/@nestjs/core/injector/instance-loader.js:39:9)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/core/injector/instance-loader.js:22:13)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-instance-loader.js:9:9)
+      at TestingModuleBuilder.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-module.builder.js:119:9)
+      at TestingModuleBuilder.compile (../node_modules/@nestjs/testing/testing-module.builder.js:74:9)
+      at Object.<anonymous> (sessions/sessions.service.spec.ts:23:35)
+
+  ● SessionsService › idempotency of /start › should prevent double provisioning via CAS update count
+
+    Nest can't resolve dependencies of the SessionsService (DbService, ?). Please make sure that the argument Symbol(SANDBOX_PROVIDER) at index [1] is available in the RootTestModule module.
+
+    Potential solutions:
+    - Is RootTestModule a valid NestJS module?
+    - If Symbol(SANDBOX_PROVIDER) is a provider, is it part of the current RootTestModule?
+    - If Symbol(SANDBOX_PROVIDER) is exported from a separate @Module, is that module imported within RootTestModule?
+      @Module({
+        imports: [ /* the Module containing Symbol(SANDBOX_PROVIDER) */ ]
+      })
+
+    For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+
+      21 |     };
+      22 |
+    > 23 |     const module: TestingModule = await Test.createTestingModule({
+         |                                   ^
+      24 |       providers: [SessionsService, { provide: DbService, useValue: dbService }],
+      25 |     }).compile();
+      26 |
+
+      at TestingInjector.lookupComponentInParentModules (../node_modules/@nestjs/core/injector/injector.js:300:19)
+      at TestingInjector.resolveComponentWrapper (../node_modules/@nestjs/testing/testing-injector.js:19:45)
+      at resolveParam (../node_modules/@nestjs/core/injector/injector.js:150:38)
+          at async Promise.all (index 1)
+      at TestingInjector.resolveConstructorParams (../node_modules/@nestjs/core/injector/injector.js:179:27)
+      at TestingInjector.loadInstance (../node_modules/@nestjs/core/injector/injector.js:77:13)
+      at TestingInjector.loadProvider (../node_modules/@nestjs/core/injector/injector.js:111:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:56:13
+          at async Promise.all (index 3)
+      at TestingInstanceLoader.createInstancesOfProviders (../node_modules/@nestjs/core/injector/instance-loader.js:55:9)
+      at ../node_modules/@nestjs/core/injector/instance-loader.js:40:13
+          at async Promise.all (index 1)
+      at TestingInstanceLoader.createInstances (../node_modules/@nestjs/core/injector/instance-loader.js:39:9)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/core/injector/instance-loader.js:22:13)
+      at TestingInstanceLoader.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-instance-loader.js:9:9)
+      at TestingModuleBuilder.createInstancesOfDependencies (../node_modules/@nestjs/testing/testing-module.builder.js:119:9)
+      at TestingModuleBuilder.compile (../node_modules/@nestjs/testing/testing-module.builder.js:74:9)
+      at Object.<anonymous> (sessions/sessions.service.spec.ts:23:35)
+
+PASS src/app.controller.spec.ts
+PASS src/workstation/workstation.service.spec.ts
+[31m[Nest] 24287  - [39m08/06/2026, 8:01:13 PM [31m  ERROR[39m [38;5;3m[VerificationService] [39m[31mSandbox run failed for check check-1: Network failure[39m
+Error: Network failure
+    at Object.<anonymous> (/Users/mohammad/Documents/simoffice/server/src/verification/verification.service.spec.ts:139:9)
+    at Promise.finally.completed (/Users/mohammad/Documents/simoffice/server/node_modules/jest-circus/build/jestAdapterInit.js:1561:28)
+    at new Promise (<anonymous>)
+    at callAsyncCircusFn (/Users/mohammad/Documents/simoffice/server/node_modules/jest-circus/build/jestAdapterInit.js:1501:10)
+    at _callCircusTest (/Users/mohammad/Documents/simoffice/server/node_modules/jest-circus/build/jestAdapterInit.js:1011:40)
+    at _runTest (/Users/mohammad/Documents/simoffice/server/node_modules/jest-circus/build/jestAdapterInit.js:951:3)
+    at /Users/mohammad/Documents/simoffice/server/node_modules/jest-circus/build/jestAdapterInit.js:853:7
+    at _runTestsForDescribeBlock (/Users/mohammad/Documents/simoffice/server/node_modules/jest-circus/build/jestAdapterInit.js:866:11)
+    at _runTestsForDescribeBlock (/Users/mohammad/Documents/simoffice/server/node_modules/jest-circus/build/jestAdapterInit.js:861:11)
+    at _runTestsForDescribeBlock (/Users/mohammad/Documents/simoffice/server/node_modules/jest-circus/build/jestAdapterInit.js:861:11)
+    at run (/Users/mohammad/Documents/simoffice/server/node_modules/jest-circus/build/jestAdapterInit.js:765:3)
+    at runAndTransformResultsToJestFormat (/Users/mohammad/Documents/simoffice/server/node_modules/jest-circus/build/jestAdapterInit.js:1993:21)
+    at jestAdapter (/Users/mohammad/Documents/simoffice/server/node_modules/jest-circus/build/runner.js:111:19)
+    at runTestInternal (/Users/mohammad/Documents/simoffice/server/node_modules/jest-runner/build/index.js:276:16)
+    at runTest (/Users/mohammad/Documents/simoffice/server/node_modules/jest-runner/build/index.js:344:7)
+PASS src/verification/verification.service.spec.ts
+PASS src/sessions/roster/roster.guard.spec.ts
+PASS src/sandbox/gvisor.provider.spec.ts
+PASS src/db/db.service.spec.ts
+PASS src/auth/auth.service.spec.ts
+PASS src/auth/teacher/teacher.guard.spec.ts
+
+Test Suites: 3 failed, 8 passed, 11 total
+Tests:       8 failed, 25 passed, 33 total
+Snapshots:   0 total
+Time:        1.572 s
+Ran all test suites.
+ ELIFECYCLE  Test failed. See above for more details.

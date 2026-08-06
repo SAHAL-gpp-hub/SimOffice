@@ -17,18 +17,13 @@ services:
   app-server:
     image: node:22-alpine
     container_name: simoffice-app-server
-    # M0.0 Skeleton: Run a tiny HTTP server for nginx and healthchecks to hit.
-    command: >
-      node -e "
-        const http = require('http');
-        const server = http.createServer((req, res) => {
-          res.writeHead(200);
-          res.end('SimOffice App Server (Skeleton)');
-        });
-        server.listen(3000, () => console.log('App Server Listening on 3000'));
-      "
+    working_dir: /usr/src/app
+    command: npm run start:dev
     volumes:
+      - ./server:/usr/src/app
       - ./content-library:/var/lib/simoffice/content-library
+    environment:
+      ORCHESTRATOR_SECRET: ${ORCHESTRATOR_SECRET:-dev-secret}
     networks:
       - simoffice-net
     depends_on:
@@ -45,12 +40,15 @@ services:
   postgres:
     image: postgres:17-alpine
     container_name: simoffice-postgres
+    ports:
+      - "5433:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-simoffice}
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
     networks:
       - simoffice-net
     healthcheck:
@@ -62,6 +60,8 @@ services:
   valkey:
     image: valkey/valkey:8-alpine
     container_name: simoffice-valkey
+    ports:
+      - "6379:6379"
     networks:
       - simoffice-net
     volumes:
@@ -73,20 +73,11 @@ services:
       retries: 5
 
   sandbox-orchestrator:
-    image: node:22-alpine
+    build: ./sandbox-orchestrator
     container_name: simoffice-sandbox-orchestrator
-    # Security Note: Mounts /var/run/docker.sock to access host Docker daemon.
-    # This is effectively root-on-host access. Intended for local dev and gVisor candidate testing.
-    # M0.0 Skeleton: Run a dummy server for healthchecks.
-    command: >
-      node -e "
-        const http = require('http');
-        const server = http.createServer((req, res) => {
-          res.writeHead(200);
-          res.end('SimOffice Sandbox Orchestrator (Skeleton)');
-        });
-        server.listen(8080, () => console.log('Sandbox Orchestrator Listening on 8080'));
-      "
+    environment:
+      ORCHESTRATOR_SECRET: ${ORCHESTRATOR_SECRET:-dev-secret}
+      DOCKER_RUNTIME: runc
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:

@@ -47,7 +47,8 @@ The documents below are ordered dependency-first: each document builds on concep
 |---|----------|---------|------------------|
 | 12 | [TP v1.0 (Pilot)](SimOffice_TP_v1_0_Pilot_Edition.md) | Testing plan — unit, integration, database, security PoC, E2E, device baseline, multiplayer sync, accessibility tests, CI pipeline, pre-pilot readiness checklist, and Phase 0 exit criteria measurement. | All upstream docs |
 | 13 | [Roadmap v1.2 (Pilot)](SimOffice_Roadmap_v1_0_Pilot_Edition.md) | Project roadmap — Phase 0 detailed milestones (M0.1–M0.7), Phase 1–3 summaries, team structure, risk register, go/no-go gates, and success metrics tracking. | PRD, TP, SSD |
-| 14 | [Prompt Library](AI_AGENT_PROMPT_LIBRARY.md) | Turnkey, high-precision prompts for AI coding agents to execute every milestone across Phase 0, 1, 2, and 3. | All 13 docs |
+| 14 | [Phase 0 Effort Estimate v1.0](SimOffice_Phase0_Effort_Estimate_v1_0.md) | Revised Phase 0 effort sizing and schedule based on M0.1 Architecture Spike outcomes. | RM |
+| 15 | [Prompt Library](AI_AGENT_PROMPT_LIBRARY.md) | Turnkey, high-precision prompts for AI coding agents to execute every milestone across Phase 0, 1, 2, and 3. | All 14 docs |
 
 ---
 
@@ -132,8 +133,8 @@ All 14 documents in the SimOffice Pilot Edition documentation suite (13 specific
 | 4 | Architecture, Technology & Security (TSSD, SAD, SSD, Compliance Spec) |
 | 2 | Contracts & Schemas (DBD, API Spec) |
 | 4 | Design & Implementation (TDD, GDD, UIUXD, AWDD) |
-| 3 | Verification, Planning & Prompting (TP, Roadmap, Prompt Library) |
-| **14** | **Total** |
+| 4 | Verification, Planning & Prompting (TP, Roadmap, Effort Estimate, Prompt Library) |
+| **15** | **Total** |
 
 ---
 

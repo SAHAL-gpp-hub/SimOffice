@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SimOffice</title>
+    <link rel="preload" as="image" href="/assets/login-bg.jpg" fetchpriority="high" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="renderCanvas"></canvas>
+    <!-- React shell mounts here — floats over the Babylon canvas -->
+    <div id="shell-root"></div>
+    <div id="uiOverlay">
+      <div id="crosshair">+</div>
+      <div id="interactionPrompt" style="display: none;">[E] Interact</div>
+      <div id="noticeOverlay" style="display: none;"></div>
+      <div id="instructions">Click to lock pointer · ESC to unlock · WASD to move · Shift to run · Space to jump · <strong>E</strong> to interact / sit</div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

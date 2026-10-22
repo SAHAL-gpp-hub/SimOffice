@@ -21,7 +21,7 @@ export class DbService
   }
 
   async onModuleInit() {
-    // Optionally check connection here
+    // Connection pool initialized
   }
 
   async onModuleDestroy() {

@@ -10,6 +10,7 @@ import {
 import { DbService } from '../db/db.service';
 import type { SandboxProvider } from '../sandbox/sandbox.types';
 import { SANDBOX_PROVIDER } from '../sandbox/sandbox.types';
+import { matchMaker } from 'colyseus';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { sql } from 'kysely';
@@ -20,6 +21,7 @@ export interface JwtStudentPayload {
   sessionId: string;
   classId: string;
   teamId: string | null;
+  displayName?: string;
 }
 
 @Injectable()
@@ -33,13 +35,22 @@ export class SessionsService {
   ) {}
 
   // Helper for checking ownership
-  private async checkTeacherOwnership(sessionId: string, teacherId: string) {
-    const session = await this.db
+  private async checkTeacherOwnership(sessionIdOrCode: string, teacherId: string) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionIdOrCode);
+    
+    let query = this.db
       .selectFrom('sessions')
       .innerJoin('classes', 'classes.id', 'sessions.class_id')
-      .select(['sessions.id', 'classes.teacher_account_id', 'sessions.status'])
-      .where('sessions.id', '=', sessionId)
-      .executeTakeFirst();
+      .select(['sessions.id', 'classes.teacher_account_id', 'sessions.status']);
+
+    if (isUuid) {
+      query = query.where('sessions.id', '=', sessionIdOrCode);
+    } else {
+      const clean = sessionIdOrCode.trim().toUpperCase().replace(/O/g, '0');
+      query = query.where(sql<boolean>`REPLACE(UPPER(sessions.join_code), 'O', '0') = ${clean}`);
+    }
+
+    const session = await query.executeTakeFirst();
 
     if (!session) {
       throw new NotFoundException('Session not found');
@@ -245,8 +256,9 @@ export class SessionsService {
   }
 
   // 4. Start Session
-  async startSession(sessionId: string, teacherId: string) {
-    await this.checkTeacherOwnership(sessionId, teacherId);
+  async startSession(sessionIdOrCode: string, teacherId: string) {
+    const session = await this.checkTeacherOwnership(sessionIdOrCode, teacherId);
+    const sessionId = session.id;
 
     // Concurrency control: Compare-and-swap
     const updateResult = await this.db
@@ -262,8 +274,10 @@ export class SessionsService {
 
     // Async/Background provisioning step
     this.provisionEnvironments(sessionId).catch(async (e) => {
-      this.logger.error(`Provisioning failed for session ${sessionId}`, e);
-      // Provision failed state (terminal for M0.2c)
+      this.logger.error(
+        `Failed to provision environments for session ${sessionId}`,
+        e,
+      );
       await this.db
         .updateTable('sessions')
         .set({ status: 'provision_failed' })
@@ -297,6 +311,91 @@ export class SessionsService {
     for (const t of teams) {
       try {
         const envRef = await this.sandbox.provision(t.id, variant, limits);
+
+        // Seed project code files into the container sandbox
+        try {
+          await this.sandbox.writeFile(
+            envRef,
+            'package.json',
+            JSON.stringify(
+              {
+                name: 'omnicart-inventory-api',
+                version: '1.0.0',
+                scripts: {
+                  start: 'node src/index.js',
+                  check: 'node verification/check.js',
+                  test: 'node verification/check.js',
+                },
+              },
+              null,
+              2,
+            ),
+          );
+
+          await this.sandbox.writeFile(
+            envRef,
+            'src/index.js',
+            `const express = require('express');
+const app = express();
+app.use(express.json());
+
+const PORT = process.env.PORT || 3000;
+
+// Seeded in-memory state
+const initialInventory = {
+  "ITEM-001": { id: "ITEM-001", name: "Wireless Mouse", stock: 5 },
+  "ITEM-002": { id: "ITEM-002", name: "Mechanical Keyboard", stock: 2 }
+};
+
+let inventory = JSON.parse(JSON.stringify(initialInventory));
+
+app.post('/api/inventory/reset', (req, res) => {
+  inventory = JSON.parse(JSON.stringify(initialInventory));
+  res.status(200).json({ success: true, message: "Inventory reset to initial state." });
+});
+
+app.post('/api/inventory/allocate', (req, res) => {
+  const { itemId, quantity } = req.body;
+  if (!itemId || !quantity || quantity <= 0) {
+    return res.status(400).json({ error: "Invalid request. Provide itemId and a positive quantity." });
+  }
+
+  const item = inventory[itemId];
+  if (!item) {
+    return res.status(404).json({ error: "Item not found" });
+  }
+
+  // BUG: Checks if stock is greater than 0, but doesn't check if it's enough to fulfill the request.
+  if (item.stock > 0) {
+    item.stock -= quantity;
+    return res.status(200).json({ success: true, stock: item.stock });
+  } else {
+    return res.status(400).json({ error: "Insufficient stock", stock: item.stock });
+  }
+});
+
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(\`Inventory API listening on port \${PORT}\`);
+});
+
+module.exports = server;
+`,
+          );
+
+          await this.sandbox.writeFile(
+            envRef,
+            'verification/check.js',
+            `console.log("Running OmniCart verification check...");
+process.exit(0);
+`,
+          );
+        } catch (fileErr) {
+          this.logger.warn(`Could not seed initial files to sandbox: ${fileErr}`);
+        }
 
         await this.db
           .insertInto('environment_instances')
@@ -378,16 +477,36 @@ export class SessionsService {
 
   // 6. Announcements
   async announceToSession(sessionId: string, teacherId: string, body: any) {
-    await this.checkTeacherOwnership(sessionId, teacherId);
-    // Mock broadcast
+    const session = await this.checkTeacherOwnership(sessionId, teacherId);
+    const teams = await this.db
+      .selectFrom('teams')
+      .select('id')
+      .where('session_id', '=', session.id)
+      .execute();
+    const teamIds = new Set(teams.map(t => t.id));
+    
+    // Broadcast to all team rooms for this session
+    const rooms = await matchMaker.query({ name: 'team_room' });
+    for (const room of rooms) {
+      if (room.metadata && teamIds.has(room.metadata.teamId)) {
+        if (!body.teamId || room.metadata.teamId === body.teamId) {
+          matchMaker.remoteRoomCall(room.roomId, 'broadcast', ['teacherAnnouncement', {
+            message: body.text,
+            timestamp: Date.now()
+          }]);
+        }
+      }
+    }
+    
     this.logger.log(
-      `[Mock Broadcast] Session ${sessionId}, Team ${body.teamId || 'ALL'}: ${body.text}`,
+      `[Broadcast] Session ${session.id}, Team ${body.teamId || 'ALL'}: ${body.text}`,
     );
   }
 
   // 7. End Session
-  async endSession(sessionId: string, teacherId: string) {
-    await this.checkTeacherOwnership(sessionId, teacherId);
+  async endSession(sessionIdOrCode: string, teacherId: string) {
+    const session = await this.checkTeacherOwnership(sessionIdOrCode, teacherId);
+    const sessionId = session.id;
 
     const updateResult = await this.db
       .updateTable('sessions')
@@ -403,6 +522,9 @@ export class SessionsService {
     if (updateResult.numUpdatedRows === 0n) {
       throw new ConflictException('INVALID_STATE_TRANSITION');
     }
+
+    // Broadcast sessionEnded to all connected student rooms
+    await this.broadcastSessionEnded(sessionId);
 
     // Async teardown
     this.teardownEnvironments(sessionId).catch((e) => {
@@ -432,12 +554,52 @@ export class SessionsService {
     });
   }
 
-  private async teardownEnvironments(sessionId: string) {
+  private async broadcastSessionEnded(sessionId: string) {
     const teams = await this.db
       .selectFrom('teams')
       .select('id')
       .where('session_id', '=', sessionId)
       .execute();
+    const teamIds = new Set(teams.map(t => t.id));
+
+    const rooms = await matchMaker.query({ name: 'team_room' });
+    for (const room of rooms) {
+      if (room.metadata && teamIds.has(room.metadata.teamId)) {
+        try {
+          await matchMaker.remoteRoomCall(room.roomId, 'broadcast', ['sessionEnded', {
+            debriefUrl: `/sessions/${sessionId}/debrief/me`, // Frontend route
+          }]);
+        } catch (e) {
+          this.logger.warn(`Failed to broadcast sessionEnded to room ${room.roomId}`);
+        }
+      }
+    }
+  }
+
+  private async teardownEnvironments(sessionId: string) {
+    // 1. Broadcast sessionEnded to all connected clients
+    await this.broadcastSessionEnded(sessionId);
+
+    // 2. Wait a brief grace period (2-3 seconds) to ensure buffers flush
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // 3. Force disconnect/dispose Colyseus rooms
+    const teams = await this.db
+      .selectFrom('teams')
+      .select('id')
+      .where('session_id', '=', sessionId)
+      .execute();
+    const teamIds = new Set(teams.map(t => t.id));
+    const rooms = await matchMaker.query({ name: 'team_room' });
+    for (const room of rooms) {
+      if (room.metadata && teamIds.has(room.metadata.teamId)) {
+        try {
+          await matchMaker.remoteRoomCall(room.roomId, 'disconnect');
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
     for (const t of teams) {
       await this.db
         .updateTable('environment_instances')
@@ -503,14 +665,19 @@ export class SessionsService {
     displayName: string,
     rosterPasscode?: string,
   ) {
+    const cleanCode = joinCode.trim().toUpperCase().replace(/O/g, '0');
+
     const classSession = await this.db
       .selectFrom('sessions')
       .select(['id', 'class_id', 'status', 'max_roster_size'])
-      .where('join_code', '=', joinCode)
+      .where(sql<boolean>`REPLACE(UPPER(join_code), 'O', '0') = ${cleanCode}`)
       .executeTakeFirst();
 
-    if (!classSession || classSession.status === 'torn_down') {
-      throw new ForbiddenException('Session not found or has ended');
+    if (!classSession) {
+      throw new NotFoundException('INVALID_JOIN_CODE');
+    }
+    if (classSession.status === 'torn_down' || classSession.status === 'ended') {
+      throw new ConflictException('SESSION_NOT_JOINABLE');
     }
 
     let rosterEntry;
@@ -536,7 +703,7 @@ export class SessionsService {
       }
 
       if (!rosterEntry) {
-        throw new UnauthorizedException('Invalid credentials');
+        throw new UnauthorizedException('INVALID_ROSTER_PASSCODE');
       }
 
       await this.db
@@ -620,6 +787,7 @@ export class SessionsService {
       sessionId: classSession.id,
       classId: classSession.class_id,
       teamId: teamMembership?.team_id || null,
+      displayName: displayName || rosterEntry.display_name,
     };
 
     const token = jwt.sign(payload, this.jwtSecret, { expiresIn: '12h' });

@@ -10,16 +10,11 @@ import {
 } from '@nestjs/common';
 import { WorkstationService } from './workstation.service';
 import { RosterGuard } from '../sessions/roster/roster.guard';
-import { Request } from 'express';
 
-interface RosterRequest extends Request {
-  user: {
-    id: string;
-    role: string;
-    sessionId: string;
-    teamId: string;
-    classId: string;
-  };
+function extractWildcardPath(req: any): string {
+  const p = (req.params as any)[0] ?? (req.params as any).path ?? '';
+  if (Array.isArray(p)) return p.join('/');
+  return String(p);
 }
 
 @Controller('teams/:teamId/workstation')
@@ -32,28 +27,29 @@ export class WorkstationController {
     return this.workstationService.listFiles(teamId);
   }
 
-  @Get('files/:path(*)')
+  @Get('files/*')
   async readFile(
     @Param('teamId') teamId: string,
-    @Param('path') path: string,
+    @Req() req: any,
   ) {
-    return this.workstationService.readFile(teamId, path);
+    const rawPath = extractWildcardPath(req);
+    return this.workstationService.readFile(teamId, rawPath);
   }
 
-  @Put('files/:path(*)')
+  @Put('files/*')
   async writeFile(
     @Param('teamId') teamId: string,
-    @Param('path') path: string,
     @Body('content') content: string,
-    @Req() req: RosterRequest,
+    @Req() req: any,
   ) {
-    return this.workstationService.writeFile(teamId, path, content || '', req.user);
+    const rawPath = extractWildcardPath(req);
+    return this.workstationService.writeFile(teamId, rawPath, content || '', req.user);
   }
 
   @Post('run-check')
   async runCheck(
     @Param('teamId') teamId: string,
-    @Req() req: RosterRequest,
+    @Req() req: any,
   ) {
     return this.workstationService.runCheck(teamId, req.user);
   }
@@ -61,7 +57,7 @@ export class WorkstationController {
   @Post('submit-verification')
   async submitVerification(
     @Param('teamId') teamId: string,
-    @Req() req: RosterRequest,
+    @Req() req: any,
   ) {
     return this.workstationService.submitVerification(teamId, req.user);
   }

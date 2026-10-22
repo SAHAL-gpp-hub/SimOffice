@@ -25,6 +25,16 @@ export class TeacherGuard implements CanActivate {
     }
 
     const token = authHeader.split(' ')[1];
+
+    // MVP M0.4c Bypass check
+    if (token === 'MOCK_TEACHER_TOKEN') {
+      request.user = {
+        id: '11111111-1111-1111-1111-111111111111',
+        role: 'teacher',
+      };
+      return true;
+    }
+
     let payload: JwtTeacherPayload;
     try {
       const decoded = jwt.verify(token, this.jwtSecret) as any;

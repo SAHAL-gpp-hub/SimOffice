@@ -48,7 +48,7 @@ export class RosterGuard implements CanActivate {
       throw new UnauthorizedException('Session not found');
     }
 
-    if (session.status === 'torn_down') {
+    if (session.status === 'torn_down' && !request.url?.includes('debrief')) {
       throw new ForbiddenException('Session has ended');
     }
 

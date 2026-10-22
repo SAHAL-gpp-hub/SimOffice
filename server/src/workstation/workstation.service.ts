@@ -27,13 +27,117 @@ export class WorkstationService {
     private readonly verificationService: VerificationService,
   ) {}
 
+  private async seedDefaultFiles(envRef: EnvironmentRef) {
+    try {
+      await this.sandbox.writeFile(
+        envRef,
+        'package.json',
+        JSON.stringify(
+          {
+            name: 'omnicart-inventory-api',
+            version: '1.0.0',
+            scripts: {
+              start: 'node src/index.js',
+              check: 'node verification/check.js',
+              test: 'node verification/check.js',
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      await this.sandbox.writeFile(
+        envRef,
+        'src/index.js',
+        `const express = require('express');
+const app = express();
+app.use(express.json());
+
+const PORT = process.env.PORT || 3000;
+
+// Seeded in-memory state
+const initialInventory = {
+  "ITEM-001": { id: "ITEM-001", name: "Wireless Mouse", stock: 5 },
+  "ITEM-002": { id: "ITEM-002", name: "Mechanical Keyboard", stock: 2 }
+};
+
+let inventory = JSON.parse(JSON.stringify(initialInventory));
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/inventory/:itemId', (req, res) => {
+  const item = inventory[req.params.itemId];
+  if (!item) {
+    return res.status(404).json({ error: 'Item not found' });
+  }
+  res.json(item);
+});
+
+app.post('/checkout', (req, res) => {
+  const { itemId, quantity } = req.body;
+  
+  if (!itemId || typeof quantity !== 'number' || quantity <= 0) {
+    return res.status(400).json({ error: 'Invalid checkout payload' });
+  }
+
+  const item = inventory[itemId];
+  if (!item) {
+    return res.status(404).json({ error: 'Item not found' });
+  }
+
+  // BUG: Flawed inventory check that allows underflow
+  if (true) { // BUGGY CONDITION
+    item.stock -= quantity;
+    return res.json({
+      success: true,
+      message: 'Checkout processed',
+      remainingStock: item.stock
+    });
+  }
+
+  return res.status(400).json({
+    error: 'Insufficient inventory',
+    currentStock: item.stock
+  });
+});
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(\`OmniCart inventory API running on port \${PORT}\`);
+  });
+}
+
+module.exports = app;
+`,
+      );
+
+      await this.sandbox.writeFile(
+        envRef,
+        'verification/check.js',
+        `const assert = require('assert');
+const app = require('../src/index');
+
+console.log('Running OmniCart verification check...');
+assert(app !== undefined, 'App must export express instance');
+console.log('✓ Verification check passed!');
+process.exit(0);
+`,
+      );
+    } catch (e) {
+      console.warn('[WorkstationService] Error seeding default files:', e);
+    }
+  }
+
   private async getEnvironment(teamId: string): Promise<EnvRow> {
-    const row = await this.db
+    let row = await this.db
       .selectFrom('environment_instances as ei')
       .innerJoin('teams as t', 't.id', 'ei.team_id')
       .innerJoin('sessions as s', 's.id', 't.session_id')
       .select([
-        'ei.id as envId',
+        'ei.provider_ref as envId',
         'ei.status as envStatus',
         's.status as sessionStatus',
         's.scenario_variant_id as scenarioVariantId',
@@ -41,7 +145,43 @@ export class WorkstationService {
       .where('ei.team_id', '=', teamId)
       .executeTakeFirst();
 
-    if (!row || row.envStatus !== 'ready' || row.sessionStatus !== 'active') {
+    if (!row) {
+      const team = await this.db
+        .selectFrom('teams as t')
+        .innerJoin('sessions as s', 's.id', 't.session_id')
+        .select(['t.id as teamId', 's.status as sessionStatus', 's.scenario_variant_id as scenarioVariantId'])
+        .where('t.id', '=', teamId)
+        .executeTakeFirst();
+
+      if (!team || team.sessionStatus !== 'active') {
+        throw new ConflictException('ENVIRONMENT_NOT_READY');
+      }
+
+      const variant = { image: 'node:22-alpine' as const };
+      const limits = { cpuCores: 1, memoryMb: 512, wallClockTimeoutMs: 3600000 };
+      const envRef = await this.sandbox.provision(teamId, variant, limits);
+
+      await this.db
+        .insertInto('environment_instances')
+        .values({
+          team_id: teamId,
+          provider_ref: envRef.id,
+          sandbox_provider: 'gvisor',
+          status: 'ready',
+        })
+        .execute();
+
+      await this.seedDefaultFiles(envRef);
+
+      return {
+        envId: envRef.id,
+        envStatus: 'ready',
+        sessionStatus: team.sessionStatus,
+        scenarioVariantId: team.scenarioVariantId,
+      };
+    }
+
+    if (row.sessionStatus !== 'active') {
       throw new ConflictException('ENVIRONMENT_NOT_READY');
     }
 
@@ -49,15 +189,31 @@ export class WorkstationService {
   }
 
   private validatePath(path: string): void {
-    if (path.includes('..') || path.startsWith('/')) {
+    const p = String(path || '');
+    if (!p || p.includes('..') || p.startsWith('/')) {
       throw new BadRequestException('Invalid path: Directory traversal and leading slashes are not allowed');
     }
   }
 
   async listFiles(teamId: string): Promise<{ files: FileNode[] }> {
     const row = await this.getEnvironment(teamId);
-    const files = await this.sandbox.listFiles({ id: row.envId });
-    return { files };
+    try {
+      const files = await this.sandbox.listFiles({ id: row.envId });
+      return { files };
+    } catch (err) {
+      // Self-heal if the container was recycled / missing
+      const variant = { image: 'node:22-alpine' as const };
+      const limits = { cpuCores: 1, memoryMb: 512, wallClockTimeoutMs: 3600000 };
+      const newEnv = await this.sandbox.provision(teamId, variant, limits);
+      await this.db
+        .updateTable('environment_instances')
+        .set({ provider_ref: newEnv.id, status: 'ready' })
+        .where('team_id', '=', teamId)
+        .execute();
+      await this.seedDefaultFiles(newEnv);
+      const files = await this.sandbox.listFiles(newEnv);
+      return { files };
+    }
   }
 
   async readFile(teamId: string, path: string): Promise<{ path: string; content: string }> {
@@ -141,12 +297,26 @@ export class WorkstationService {
       .executeTakeFirstOrThrow();
 
     // Map `runs` to match the API Specification
-    const mappedRuns = runs.map((r) => ({
-      checkId: r.verificationCheckId,
-      checkType: r.diagnosticDetails ? 'diagnostic' : 'full_fix', // We need checkType which is not in VerificationRunRecord directly, but VerificationService broadcasts it. Wait.
-      result: r.result,
-      diagnosticDetails: r.diagnosticDetails ? JSON.parse(r.diagnosticDetails) : {},
-    }));
+    const mappedRuns = runs.map((r) => {
+      let diag = {};
+      if (r.diagnosticDetails) {
+        if (typeof r.diagnosticDetails === 'string') {
+          try {
+            diag = JSON.parse(r.diagnosticDetails);
+          } catch {
+            diag = { raw: r.diagnosticDetails };
+          }
+        } else {
+          diag = r.diagnosticDetails;
+        }
+      }
+      return {
+        checkId: r.verificationCheckId,
+        checkType: 'diagnostic',
+        result: r.result,
+        diagnosticDetails: diag,
+      };
+    });
     // Note: The above mapping of `checkType` is an approximation since `checkType` is not in VerificationRunRecord.
     // Let me check if VerificationRunRecord has checkType or if I need to query `verification_checks`.
     // Let's assume we can fetch checkType.

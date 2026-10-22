@@ -9,6 +9,9 @@ import { SessionsModule } from './sessions/sessions.module';
 import { SandboxModule } from './sandbox/sandbox.module';
 import { VerificationModule } from './verification/verification.module';
 import { WorkstationModule } from './workstation/workstation.module';
+import { RosterEntriesModule } from './roster-entries/roster-entries.module';
+import { ContributionTrackingModule } from './contribution-tracking/contribution-tracking.module';
+import { ReportingModule } from './reporting/reporting.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import Redis from 'ioredis';
 
@@ -31,6 +34,9 @@ import Redis from 'ioredis';
     SandboxModule,
     VerificationModule,
     WorkstationModule,
+    RosterEntriesModule,
+    ContributionTrackingModule,
+    ReportingModule,
     ScheduleModule.forRoot(),
   ],
   controllers: [AppController],

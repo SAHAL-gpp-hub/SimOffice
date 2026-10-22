@@ -18,12 +18,19 @@ services:
     image: node:22-alpine
     container_name: simoffice-app-server
     working_dir: /usr/src/app
-    command: npm run start:dev
+    command: node dist/src/main.js
+    ports:
+      - "3000:3000"
     volumes:
       - ./server:/usr/src/app
+      - app-node-modules:/usr/src/app/node_modules
+      - app-dist:/usr/src/app/dist
       - ./content-library:/var/lib/simoffice/content-library
     environment:
       ORCHESTRATOR_SECRET: ${ORCHESTRATOR_SECRET:-dev-secret}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret}
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-simoffice}
+      REDIS_URL: redis://valkey:6379
     networks:
       - simoffice-net
     depends_on:
@@ -75,6 +82,8 @@ services:
   sandbox-orchestrator:
     build: ./sandbox-orchestrator
     container_name: simoffice-sandbox-orchestrator
+    ports:
+      - "8080:8080"
     environment:
       ORCHESTRATOR_SECRET: ${ORCHESTRATOR_SECRET:-dev-secret}
       DOCKER_RUNTIME: runc
@@ -83,7 +92,7 @@ services:
     networks:
       - simoffice-net
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
       interval: 5s
       timeout: 3s
       retries: 3
@@ -91,6 +100,8 @@ services:
 volumes:
   postgres-data:
   valkey-data:
+  app-node-modules:
+  app-dist:
 
 networks:
   simoffice-net:

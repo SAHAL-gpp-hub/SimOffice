@@ -8,18 +8,38 @@ import {
 } from './verification.types';
 import { Logger } from '@nestjs/common';
 
-// Dummy implementation for M0.2e. M0.2f/Colyseus will replace this.
-class DummyRoomBroadcaster implements RoomBroadcaster {
-  private readonly logger = new Logger(DummyRoomBroadcaster.name);
+import { matchMaker } from 'colyseus';
 
-  broadcastVerificationResult(
+class ColyseusRoomBroadcaster implements RoomBroadcaster {
+  private readonly logger = new Logger(ColyseusRoomBroadcaster.name);
+
+  async broadcastVerificationResult(
     teamId: string,
     run: VerificationRunRecord,
     checkType: 'full_fix' | 'diagnostic',
-  ): void {
-    this.logger.log(
-      `[MOCK BROADCAST] team ${teamId} check ${run.verificationCheckId} type ${checkType} -> ${run.result}`,
-    );
+  ): Promise<void> {
+    try {
+      const rooms = await matchMaker.query({ name: 'team_room' });
+      for (const room of rooms) {
+        if (room.metadata?.teamId === teamId) {
+          await matchMaker.remoteRoomCall(room.roomId, 'broadcast', [
+            'verificationResult',
+            {
+              teamId,
+              checkId: run.verificationCheckId,
+              checkType,
+              result: run.result,
+              diagnosticDetails: run.diagnosticDetails,
+              ranAt: run.ranAt,
+            },
+          ]);
+        }
+      }
+    } catch (e: any) {
+      this.logger.error(
+        `Failed to broadcast verification result to team ${teamId}: ${e.message}`,
+      );
+    }
   }
 }
 
@@ -29,7 +49,7 @@ class DummyRoomBroadcaster implements RoomBroadcaster {
     VerificationService,
     {
       provide: ROOM_BROADCASTER,
-      useClass: DummyRoomBroadcaster,
+      useClass: ColyseusRoomBroadcaster,
     },
   ],
   exports: [VerificationService],

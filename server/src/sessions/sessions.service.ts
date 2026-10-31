@@ -802,6 +802,7 @@ process.exit(0);
       wsRoomUrl: teamMembership
         ? `wss://example.com/rooms/${teamMembership.team_id}`
         : null,
+      displayName: displayName || rosterEntry.display_name,
     };
   }
 }

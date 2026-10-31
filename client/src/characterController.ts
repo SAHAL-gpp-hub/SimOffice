@@ -295,6 +295,7 @@ export class CharacterController {
                     // Snap position
                     this.mesh.position = nearest.snapPosition.clone();
                     this.mesh.rotation.y = nearest.snapRotationY || 0;
+                    this.dispatchNetworkState(true);
                     
                     // Move camera to look toward the desk / monitor.
                     // Use the player's actual facing direction so the camera
@@ -323,32 +324,42 @@ export class CharacterController {
         }
 
         // 2. Physics & Ground Check (Raycast)
-        const ray = new Ray(this.mesh.position.clone(), new Vector3(0, -1, 0), CAPSULE_HALF_HEIGHT + GROUND_EPSILON);
-        const hit = this.scene.pickWithRay(ray, (m) => m.name !== "player" && m.checkCollisions);
-        this.wasGrounded = this.isGrounded;
-
-        if (hit?.hit) {
+        const isSeated = this.model.animState === 'sit' || this.model.animState === 'sitDown';
+        if (isSeated && this.currentSitTrigger?.snapPosition) {
+            // Keep seated height fixed at the snapPosition to prevent ground raycast
+            // from snapping capsule to the top of the couch cushion/backrest
+            this.mesh.position.y = this.currentSitTrigger.snapPosition.y;
+            this.verticalVelocity = 0;
             this.isGrounded = true;
             this.timeSinceGrounded = 0;
-            if (this.verticalVelocity <= 0) {
-                this.verticalVelocity = 0;
-                this.mesh.position.y = hit.pickedPoint!.y + CAPSULE_HALF_HEIGHT;
-            }
-            // Only treat this as a "landing" if we were actually in a falling/jumping
-            // animation state. A single-frame ground-ray miss during walk/run/idle is
-            // swallowed by animState's fall-grace window (animState.ts) and never
-            // leaves 'walk' — but wasGrounded/isGrounded still flip true->false->true
-            // for that one frame. Firing LAND on every such blip forces a hard cut
-            // into the non-looping 'land' clip (then 'idle') even though the
-            // character never visibly left the walk cycle, which reads as a
-            // stutter/flicker while walking over anything slightly uneven.
-            if (!this.wasGrounded && (this.model.animState === 'fall' || this.model.animState === 'jumpUp')) {
-                action = action ?? { type: 'LAND' };
-            }
         } else {
-            this.isGrounded = false;
-            this.timeSinceGrounded += dt;
-            this.verticalVelocity += GRAVITY * dt;
+            const ray = new Ray(this.mesh.position.clone(), new Vector3(0, -1, 0), CAPSULE_HALF_HEIGHT + GROUND_EPSILON);
+            const hit = this.scene.pickWithRay(ray, (m) => m.name !== "player" && m.checkCollisions);
+            this.wasGrounded = this.isGrounded;
+
+            if (hit?.hit) {
+                this.isGrounded = true;
+                this.timeSinceGrounded = 0;
+                if (this.verticalVelocity <= 0) {
+                    this.verticalVelocity = 0;
+                    this.mesh.position.y = hit.pickedPoint!.y + CAPSULE_HALF_HEIGHT;
+                }
+                // Only treat this as a "landing" if we were actually in a falling/jumping
+                // animation state. A single-frame ground-ray miss during walk/run/idle is
+                // swallowed by animState's fall-grace window (animState.ts) and never
+                // leaves 'walk' — but wasGrounded/isGrounded still flip true->false->true
+                // for that one frame. Firing LAND on every such blip forces a hard cut
+                // into the non-looping 'land' clip (then 'idle') even though the
+                // character never visibly left the walk cycle, which reads as a
+                // stutter/flicker while walking over anything slightly uneven.
+                if (!this.wasGrounded && (this.model.animState === 'fall' || this.model.animState === 'jumpUp')) {
+                    action = action ?? { type: 'LAND' };
+                }
+            } else {
+                this.isGrounded = false;
+                this.timeSinceGrounded += dt;
+                this.verticalVelocity += GRAVITY * dt;
+            }
         }
 
         // Jump Logic (Coyote time & Buffer)
@@ -449,23 +460,24 @@ export class CharacterController {
 
     private lastSendTime = 0;
     private lastSendPayload = "";
-    public onNetworkMove?: (payload: { x: number, y: number, z: number, animState: string }) => void;
+    public onNetworkMove?: (payload: { x: number, y: number, z: number, rotationY: number, animState: string }) => void;
 
-    private dispatchNetworkState() {
+    private dispatchNetworkState(force = false) {
         if (!this.onNetworkMove) return;
 
         const now = performance.now();
-        if (now - this.lastSendTime < 67) return; // 15Hz cap
+        if (!force && now - this.lastSendTime < 67) return; // 15Hz cap
 
         const payload = {
             x: this.mesh.position.x,
             y: this.mesh.position.y,
             z: this.mesh.position.z,
+            rotationY: this.mesh.rotation.y,
             animState: this.model.animState,
         };
 
         const json = JSON.stringify(payload);
-        if (json !== this.lastSendPayload) {
+        if (force || json !== this.lastSendPayload) {
             this.onNetworkMove(payload);
             this.lastSendPayload = json;
             this.lastSendTime = now;
@@ -479,9 +491,26 @@ export class CharacterController {
         }
     }
 
-    public applyAppearance(hex: string) {
+    public applyAppearance(hex?: string | null) {
         if (this.model) {
             this.model.applyAppearance(hex);
+        }
+    }
+
+    public standUp() {
+        if (this.model.animState === 'sit' || this.model.animState === 'sitDown') {
+            if (this.currentSitTrigger?.standPosition) {
+                this.mesh.position = this.currentSitTrigger.standPosition.clone();
+            } else {
+                const facingAngle = this.mesh.rotation.y;
+                const backX = -Math.sin(facingAngle) * 0.8;
+                const backZ = -Math.cos(facingAngle) * 0.8;
+                this.mesh.position.addInPlace(new Vector3(backX, 0, backZ));
+            }
+            this.mesh.position.y = CAPSULE_HALF_HEIGHT + 0.1;
+            this.currentSitTrigger = null;
+            this.model.playAnim('idle');
+            this.onStand?.();
         }
     }
 }

@@ -28,6 +28,7 @@ let scannerCallback: ScannerCallback | null = null;
 let skipCallback: SkipCallback | null = null;
 let sitCallback: SitCallback | null = null;
 let standCallback: StandCallback | null = null;
+let standActionHandler: (() => void) | null = null;
 
 let engineInitializer: EngineInitializer | null = null;
 let engineInitPromise: Promise<void> | null = null;
@@ -132,4 +133,18 @@ export function notifySit(): void {
  */
 export function notifyStand(): void {
   standCallback?.();
+}
+
+/**
+ * Register the engine action to make the 3D character stand up.
+ */
+export function registerStandAction(handler: () => void): void {
+  standActionHandler = handler;
+}
+
+/**
+ * UI button / escape hook to make the character stand up and close the workstation.
+ */
+export function triggerStandAction(): void {
+  standActionHandler?.();
 }

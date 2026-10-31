@@ -19,7 +19,7 @@ export class GVisorProvider implements SandboxProvider {
 
   constructor() {
     this.orchestratorUrl =
-      process.env.ORCHESTRATOR_URL || 'http://sandbox-orchestrator:8080';
+      process.env.ORCHESTRATOR_URL || 'http://127.0.0.1:8080';
     this.secret = process.env.ORCHESTRATOR_SECRET || 'dev-secret';
     this.headers = {
       'Content-Type': 'application/json',

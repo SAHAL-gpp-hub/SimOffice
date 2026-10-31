@@ -27,6 +27,7 @@ import {
   useState,
 } from 'react';
 import { useShellStore } from './store';
+import { triggerStandAction } from './engineBridge';
 import * as api from '../api/workstation';
 import type {
   FileNode,
@@ -547,7 +548,25 @@ export function WorkstationOverlay() {
           </div>
           <div className="ws-header__right">
             {selectedFile && <SaveIndicator state={saveState} />}
-            <span className="ws-header__hint">[E] or [Esc] to stand up</span>
+            <button
+              type="button"
+              className="ws-stand-btn"
+              onClick={() => triggerStandAction()}
+              title="Stand up and return to office view"
+              style={{
+                marginLeft: '12px',
+                padding: '4px 10px',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#38bdf8',
+                background: 'rgba(56, 189, 248, 0.12)',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
+                borderRadius: '6px',
+                cursor: 'pointer',
+              }}
+            >
+              Stand Up [Esc]
+            </button>
           </div>
         </header>
  

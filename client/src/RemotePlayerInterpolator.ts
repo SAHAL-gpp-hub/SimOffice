@@ -1,4 +1,4 @@
-import { Scene, MeshBuilder, Vector3, Mesh } from '@babylonjs/core';
+import { Scene, MeshBuilder, Vector3, Mesh, DynamicTexture, StandardMaterial, Color3 } from '@babylonjs/core';
 import type { Room } from 'colyseus.js';
 import { TeamRoomState, PlayerState } from './network/schema/TeamRoomState';
 
@@ -7,6 +7,7 @@ import type { AnimState } from './animState';
 
 interface RemotePlayer {
   mesh: Mesh;
+  nameTag: Mesh | null;
   model: CharacterModel;
   targetPos: Vector3;
   startPos: Vector3;
@@ -35,14 +36,16 @@ export class RemotePlayerInterpolator {
       // Don't render the local player via the interpolator
       if (sessionId === this.localSessionId) return;
 
-      console.log('Remote player joined:', sessionId);
+      console.log('Remote player joined:', sessionId, player.displayName);
       const mesh = MeshBuilder.CreateCapsule(`remote_${sessionId}`, { height: 1.8, radius: 0.3 }, this.scene);
       mesh.position = new Vector3(player.x, player.y, player.z);
       mesh.isVisible = false; // Hide collision capsule
 
+      const nameTag = this.createNameTag(mesh, player.displayName || 'Player', player.colorScheme);
+
       const model = new CharacterModel(this.scene, mesh);
       model.loadAssets().then(() => {
-        if (player.colorScheme) model.applyAppearance(player.colorScheme);
+        if (player.colorScheme && player.colorScheme !== 'default') model.applyAppearance(player.colorScheme);
         const rp = this.players.get(sessionId);
         if (rp && rp.animState) {
           model.playAnim(rp.animState as AnimState);
@@ -51,6 +54,7 @@ export class RemotePlayerInterpolator {
 
       const remotePlayer: RemotePlayer = {
         mesh,
+        nameTag,
         model,
         targetPos: mesh.position.clone(),
         startPos: mesh.position.clone(),
@@ -63,6 +67,12 @@ export class RemotePlayerInterpolator {
       player.listen('x', (value) => this.schedulePositionUpdate(sessionId, 'x', value));
       player.listen('y', (value) => this.schedulePositionUpdate(sessionId, 'y', value));
       player.listen('z', (value) => this.schedulePositionUpdate(sessionId, 'z', value));
+      player.listen('rotationY', (value) => {
+        const rp = this.players.get(sessionId);
+        if (rp && typeof value === 'number') {
+          rp.mesh.rotation.y = value;
+        }
+      });
       player.listen('animState', (value) => {
         const rp = this.players.get(sessionId);
         if (rp) {
@@ -72,8 +82,15 @@ export class RemotePlayerInterpolator {
       });
       player.listen('colorScheme', (value) => {
         const rp = this.players.get(sessionId);
+        if (rp) {
+          rp.model.applyAppearance(value === 'default' ? null : value);
+          this.updateNameTag(rp, player.displayName || 'Player', value);
+        }
+      });
+      player.listen('displayName', (value) => {
+        const rp = this.players.get(sessionId);
         if (rp && value) {
-          rp.model.applyAppearance(value);
+          this.updateNameTag(rp, value, player.colorScheme);
         }
       });
     });
@@ -82,6 +99,7 @@ export class RemotePlayerInterpolator {
       console.log('Remote player left:', sessionId);
       const rp = this.players.get(sessionId);
       if (rp) {
+        if (rp.nameTag) rp.nameTag.dispose();
         rp.model.dispose();
         rp.mesh.dispose();
         this.players.delete(sessionId);
@@ -90,6 +108,80 @@ export class RemotePlayerInterpolator {
     });
 
     this.scene.onBeforeRenderObservable.add(this.update.bind(this));
+  }
+
+  private createNameTag(parent: Mesh, name: string, colorHex?: string): Mesh {
+    const plane = MeshBuilder.CreatePlane(`nametag_${parent.name}`, { width: 1.8, height: 0.45 }, this.scene);
+    plane.parent = parent;
+    plane.position = new Vector3(0, 2.2, 0);
+    plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
+
+    const texture = new DynamicTexture(`nametagTex_${parent.name}`, { width: 256, height: 64 }, this.scene, false);
+    const ctx = texture.getContext() as unknown as CanvasRenderingContext2D;
+
+    // Background pill
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.beginPath();
+    if (typeof ctx.roundRect === 'function') {
+      ctx.roundRect(10, 8, 236, 48, 16);
+    } else {
+      ctx.rect(10, 8, 236, 48);
+    }
+    ctx.fill();
+
+    // Border with player color
+    ctx.strokeStyle = colorHex || '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Text
+    ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(name.slice(0, 16), 128, 32);
+    texture.update();
+
+    const mat = new StandardMaterial(`nametagMat_${parent.name}`, this.scene);
+    mat.diffuseTexture = texture;
+    mat.diffuseTexture.hasAlpha = true;
+    mat.useAlphaFromDiffuseTexture = true;
+    mat.emissiveColor = new Color3(1, 1, 1);
+    mat.disableLighting = true;
+    mat.backFaceCulling = false;
+    plane.material = mat;
+
+    return plane;
+  }
+
+  private updateNameTag(rp: RemotePlayer, name: string, colorHex?: string) {
+    if (!rp.nameTag) return;
+    const mat = rp.nameTag.material as StandardMaterial;
+    if (mat && mat.diffuseTexture instanceof DynamicTexture) {
+      const tex = mat.diffuseTexture;
+      const ctx = tex.getContext() as unknown as CanvasRenderingContext2D;
+      ctx.clearRect(0, 0, 256, 64);
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.beginPath();
+      if (typeof ctx.roundRect === 'function') {
+        ctx.roundRect(10, 8, 236, 48, 16);
+      } else {
+        ctx.rect(10, 8, 236, 48);
+      }
+      ctx.fill();
+
+      ctx.strokeStyle = colorHex || '#38bdf8';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(name.slice(0, 16), 128, 32);
+      tex.update();
+    }
   }
 
   /**
@@ -149,7 +241,13 @@ export class RemotePlayerInterpolator {
       Vector3.LerpToRef(rp.startPos, rp.targetPos, t, rp.mesh.position);
 
       const moveDelta = rp.mesh.position.subtract(prevPos);
-      if (moveDelta.x !== 0 || moveDelta.z !== 0) {
+      if (rp.animState === 'sit' || rp.animState === 'sitDown') {
+        // When seated or transitioning to sit, snap or stay facing the seated rotation
+        const statePlayer = this.room.state.players.get(Array.from(this.players.entries()).find(([_, v]) => v === rp)?.[0] ?? '');
+        if (statePlayer && typeof statePlayer.rotationY === 'number') {
+          rp.mesh.rotation.y = statePlayer.rotationY;
+        }
+      } else if (moveDelta.x !== 0 || moveDelta.z !== 0) {
         const targetAngle = Math.atan2(moveDelta.x, moveDelta.z);
         let currentAngle = rp.mesh.rotation.y;
         

@@ -1,3 +1,20 @@
+import * as fs from 'fs';
+import * as path from 'path';
+
+// Load .env configuration
+const envCandidates = [
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(process.cwd(), 'server', '.env'),
+  path.resolve(__dirname, '..', '.env'),
+];
+for (const envPath of envCandidates) {
+  if (fs.existsSync(envPath) && typeof process.loadEnvFile === 'function') {
+    try {
+      process.loadEnvFile(envPath);
+    } catch (_) {}
+  }
+}
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Server } from '@colyseus/core';

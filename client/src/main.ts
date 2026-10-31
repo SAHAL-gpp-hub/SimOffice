@@ -1,7 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Shell } from './shell/Shell';
-import { registerEngineCallbacks, registerEngineInitializer, notifySit, notifyStand, registerSitCallback, registerStandCallback } from './shell/engineBridge';
+import { registerEngineCallbacks, registerEngineInitializer, notifySit, notifyStand, registerSitCallback, registerStandCallback, registerStandAction } from './shell/engineBridge';
 import { COLOR_SCHEMES } from './shell/appearanceCatalog';
 import { useShellStore } from './shell/store';
 
@@ -44,9 +44,14 @@ async function initBabylonEngine(): Promise<void> {
 
         if (!canvas) return;
 
-        const engine = new Engine(canvas, true);
+        const engine = new Engine(canvas, true, {
+            adaptToDeviceRatio: true,
+        });
+        engine.disableUniformBuffers = true;
+        engine.renderEvenInBackground = true;
 
         const scene = new Scene(engine);
+        (window as any).__scene = scene;
         scene.clearColor = new Color4(0.08, 0.09, 0.12, 1);
         scene.collisionsEnabled = true;
 
@@ -83,6 +88,8 @@ async function initBabylonEngine(): Promise<void> {
                 const scheme = COLOR_SCHEMES.find(c => c.id === appearance.colorScheme);
                 if (scheme) {
                     controller.applyAppearance(scheme.hex);
+                } else if (!appearance.colorScheme || appearance.colorScheme === 'default') {
+                    controller.applyAppearance(null);
                 }
 
                 const joinResult = useShellStore.getState().joinResult;
@@ -128,6 +135,9 @@ async function initBabylonEngine(): Promise<void> {
 
         registerSitCallback(() => {});
         registerStandCallback(() => {});
+        registerStandAction(() => {
+            controller.standUp();
+        });
     } catch (err: any) {
         console.warn('[SimOffice Engine] WebGL/Babylon init skipped or not supported:', err?.message || err);
         // In environments without WebGL, provide fallback bridge callbacks so React UI progresses

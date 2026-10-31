@@ -18,8 +18,8 @@ export function CharacterCreationScreen() {
   const displayNameId = useId();
 
   const { joinResult, enterWorld: finishCreation } = useShellStore();
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState('');
+  const [selectedColor, setSelectedColor] = useState<string | null>(COLOR_SCHEMES[0]?.id || null);
+  const [displayName, setDisplayName] = useState(joinResult?.displayName || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -96,7 +96,11 @@ export function CharacterCreationScreen() {
               role="radio"
               aria-checked={selectedColor === option.id}
               className={`shell-swatch ${selectedColor === option.id ? 'shell-swatch--selected' : ''}`}
-              style={{ backgroundColor: option.hex, color: option.darkText ? '#000' : '#fff' }}
+              style={{
+                backgroundColor: option.hex || '#475569',
+                backgroundImage: option.id === 'default' ? 'linear-gradient(135deg, #3b82f6, #ec4899, #eab308)' : undefined,
+                color: option.darkText ? '#000' : '#fff'
+              }}
               onClick={() => setSelectedColor(option.id)}
               disabled={loading}
               aria-label={option.label}

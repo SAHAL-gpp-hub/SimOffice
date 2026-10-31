@@ -185,7 +185,19 @@ function instantiateAnchored(
   inner.parent   = outer;
   inner.position = offset;
 
-  for (const root of entries.rootNodes) (root as Node).parent = inner;
+  for (const root of entries.rootNodes) {
+    (root as Node).parent = inner;
+    if (tag === 'orangecouch' || tag === 'redcouch' || tag === 'chair' || tag === 'plant') {
+      if ((root as any).checkCollisions !== undefined) {
+        (root as any).checkCollisions = true;
+      }
+      if (typeof (root as any).getChildMeshes === 'function') {
+        for (const m of (root as any).getChildMeshes(false)) {
+          m.checkCollisions = true;
+        }
+      }
+    }
+  }
   return outer;
 }
 
@@ -230,11 +242,13 @@ function mkLoungeTable(
     { diameter: BASE_D, height: 0.04, tessellation: 36 }, scene);
   basePlinth.position = new Vector3(cx, 0.02, czPos);
   basePlinth.material = baseMat;
+  basePlinth.checkCollisions = true;
 
   const pedestal = MeshBuilder.CreateCylinder(`${name}_pedestal`,
     { diameterTop: 0.38, diameterBottom: 0.46, height: TABLE_H - 0.08, tessellation: 36 }, scene);
   pedestal.position = new Vector3(cx, (TABLE_H - 0.08) / 2 + 0.04, czPos);
   pedestal.material = baseMat;
+  pedestal.checkCollisions = true;
 
   // 2. Brushed bronze accent ring
   const trimRing = MeshBuilder.CreateCylinder(`${name}_trim`,
@@ -1319,15 +1333,22 @@ export async function buildScene(scene: Scene): Promise<Environment> {
         }
       }
 
+      // Shift snap position slightly forward toward the central coffee table
+      // so character sits on the front cushion edge rather than buried into backrest.
+      const FORWARD_OFFSET = 0.22;
+      const snapX = cx - FORWARD_OFFSET * Math.cos(angle);
+      const snapZ = cz2 - FORWARD_OFFSET * Math.sin(angle);
+      const SEATED_Y = 0.88;
+
       env.triggers.push({
         id:            `sit_${lcz}_${ci}`,
         type:          'SIT',
-        position:      new Vector3(cx, SA_CHAIR_SEAT_H, cz2),
-        radius:        1.0,
-        snapPosition:  new Vector3(cx, SA_CHAIR_SEAT_H, cz2),
+        position:      new Vector3(cx, SEATED_Y, cz2),
+        radius:        1.1,
+        snapPosition:  new Vector3(snapX, SEATED_Y, snapZ),
         standPosition: new Vector3(
           cx + 0.75 * Math.cos(angle),
-          0,
+          0.90,
           cz2 + 0.75 * Math.sin(angle),
         ),
         snapRotationY: rotY,
@@ -1349,15 +1370,25 @@ export async function buildScene(scene: Scene): Promise<Environment> {
   // MacBook on desk surface, lid open facing player (toward -X)
   spawnProp('macbook', CTR_X - 0.20, CTR_H + 0.06, CTR_Z,
     Math.PI, 0.01, 'ctr_laptop');
-  // Bar stool in front of desk (player-side), centred on desk Z
+  // Bar stool in front of desk (player-side), facing desk (+X)
   spawnProp('chair', CTR_X - 0.90, 0, CTR_Z,
-    0, 1.0, 'ctr_stool');
+    Math.PI / 2, 1.0, 'ctr_stool');
   // Plant beside desk — to the south (lower Z) end
   spawnProp('plant', CTR_X - 0.30, 0, CTR_Z - CTR_W / 2 - 0.35,
     0, 1.0, 'ctr_plant');
 
+  env.triggers.push({
+    id:            'sit_ctr_stool',
+    type:          'SIT',
+    position:      new Vector3(CTR_X - 0.90, 1.22, CTR_Z),
+    radius:        1.1,
+    snapPosition:  new Vector3(CTR_X - 0.82, 1.22, CTR_Z),
+    standPosition: new Vector3(CTR_X - 1.40, 0.90, CTR_Z),
+    snapRotationY: Math.PI / 2,
+  });
+
   // ── PHASE 2: North workstation props ──────────────────────────────────────
-  // Stool in front of desk (stepped south, toward room centre)
+  // Stool in front of desk (stepped south, toward room centre, facing north desk)
   spawnProp('chair', WS_N_X, 0, WS_N_Z - 0.85,
     0, 1.0, 'wsN_stool');
   // MacBook on desk surface
@@ -1367,8 +1398,18 @@ export async function buildScene(scene: Scene): Promise<Environment> {
   spawnProp('plant', WS_N_X + WS_W / 2 + 0.30, 0, WS_N_Z - 0.20,
     0, 1.0, 'wsN_plant');
 
+  env.triggers.push({
+    id:            'sit_wsN_stool',
+    type:          'SIT',
+    position:      new Vector3(WS_N_X, 1.22, WS_N_Z - 0.85),
+    radius:        1.1,
+    snapPosition:  new Vector3(WS_N_X, 1.22, WS_N_Z - 0.77),
+    standPosition: new Vector3(WS_N_X, 0.90, WS_N_Z - 1.45),
+    snapRotationY: 0,
+  });
+
   // ── PHASE 2: South workstation props ──────────────────────────────────────
-  // Stool in front of desk (stepped north, toward room centre)
+  // Stool in front of desk (stepped north, toward room centre, facing south desk)
   spawnProp('chair', WS_S_X, 0, WS_S_Z + 0.85,
     Math.PI, 1.0, 'wsS_stool');
   // MacBook on desk surface
@@ -1377,6 +1418,16 @@ export async function buildScene(scene: Scene): Promise<Environment> {
   // Plant beside desk — to the east end
   spawnProp('plant', WS_S_X + WS_W / 2 + 0.30, 0, WS_S_Z + 0.20,
     0, 1.0, 'wsS_plant');
+
+  env.triggers.push({
+    id:            'sit_wsS_stool',
+    type:          'SIT',
+    position:      new Vector3(WS_S_X, 1.22, WS_S_Z + 0.85),
+    radius:        1.1,
+    snapPosition:  new Vector3(WS_S_X, 1.22, WS_S_Z + 0.77),
+    standPosition: new Vector3(WS_S_X, 0.90, WS_S_Z + 1.45),
+    snapRotationY: Math.PI,
+  });
 
   // ── PHASE 4: Materials + Lighting checklist log ───────────────────────────
   // ── PHASE 5: Soft contact shadows ─────────────────────────────────────────

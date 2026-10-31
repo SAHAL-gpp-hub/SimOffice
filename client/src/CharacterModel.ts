@@ -27,6 +27,7 @@ export class CharacterModel {
     private animRoots: TransformNode[] = [];
     
     private savedLocoFrames: Map<AnimState, number> = new Map();
+    private defaultMaterials: Map<string, any> = new Map();
 
     constructor(scene: Scene, parentMesh: Mesh) {
         this.scene = scene;
@@ -66,6 +67,9 @@ export class CharacterModel {
             // on the invisible capsule parent never hides visible character parts.
             visualRoot.getChildMeshes(false).forEach(m => {
                 m.alwaysSelectAsActiveMesh = true;
+                if (m.material) {
+                    this.defaultMaterials.set(m.uniqueId.toString(), m.material);
+                }
             });
 
             this.alignFeetToCapsule(this.visualWrapper, visualRoot);
@@ -121,7 +125,7 @@ export class CharacterModel {
                 console.warn('[rootMotion] Hips node not found — walk/run may drift.');
             }
 
-            // Set up Idle animation from the base GLB
+            // Set up Idle animation from the base GLB and start it immediately
             if (baseRes.animationGroups.length > 0) {
                 const idleAg = baseRes.animationGroups[0];
                 idleAg.name = 'idle';
@@ -129,6 +133,7 @@ export class CharacterModel {
                 idleAg.enableBlending = true;
                 idleAg.blendingSpeed = 0.1; 
                 this.animGroups.set('idle', idleAg);
+                this.playAnim('idle');
             }
 
             const animFiles: { file: string, state: AnimState }[] = [
@@ -267,15 +272,23 @@ export class CharacterModel {
         }
     }
 
-    public applyAppearance(hex: string) {
+    public applyAppearance(hex?: string | null) {
         if (!this.visualWrapper) return;
         
         const meshes = this.visualWrapper.getChildMeshes(false);
         for (const m of meshes) {
-            if (m.name.toLowerCase().includes('primitive')) {
+            const originalMat = this.defaultMaterials.get(m.uniqueId.toString());
+            if (!hex) {
+                if (originalMat) {
+                    m.material = originalMat;
+                }
+                continue;
+            }
+            const name = m.name.toLowerCase();
+            if (name.includes('body') || name.includes('geo') || name.includes('primitive')) {
                 let mat = m.material as any;
-                if (!mat || mat.name !== 'customAppearance') {
-                    mat = new StandardMaterial('customAppearance', this.scene);
+                if (!mat || mat.name !== `customAppearance_${hex}`) {
+                    mat = new StandardMaterial(`customAppearance_${hex}`, this.scene);
                     m.material = mat;
                 }
                 mat.diffuseColor = Color3.FromHexString(hex);

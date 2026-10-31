@@ -44,6 +44,7 @@ export interface JoinResponse {
   teamId: string | null;
   token: string;
   wsRoomUrl: string | null;
+  displayName?: string;
 }
 
 export async function joinSession(payload: JoinRequest): Promise<JoinResponse> {

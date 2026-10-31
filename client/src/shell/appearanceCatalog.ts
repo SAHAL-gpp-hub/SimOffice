@@ -17,6 +17,7 @@ export interface ColorSchemeOption {
 }
 
 export const COLOR_SCHEMES: ColorSchemeOption[] = [
+  { id: 'default',          label: 'Original',  hex: '',        darkText: false },
   { id: 'bright-blue',      label: 'Blue',      hex: '#3B8BEB', darkText: false },
   { id: 'coral-red',        label: 'Red',       hex: '#E85454', darkText: false },
   { id: 'forest-green',     label: 'Green',     hex: '#3DA05A', darkText: false },

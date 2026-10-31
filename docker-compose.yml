@@ -18,7 +18,7 @@ services:
     image: node:22-alpine
     container_name: simoffice-app-server
     working_dir: /usr/src/app
-    command: node dist/src/main.js
+    command: node dist/main.js
     ports:
       - "3000:3000"
     volumes:
@@ -31,6 +31,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-secret}
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-simoffice}
       REDIS_URL: redis://valkey:6379
+      ORCHESTRATOR_URL: http://sandbox-orchestrator:8080
     networks:
       - simoffice-net
     depends_on:

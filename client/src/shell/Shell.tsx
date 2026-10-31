@@ -11,35 +11,20 @@
  * via display:none when workstation.isOpen is false.
  */
 
-import { lazy, Suspense } from 'react';
 import { useShellStore } from './store';
 import { JoinScreen } from './JoinScreen';
-
-// Code-split all post-login & in-world UI to keep initial pre-auth bundle < 50 KB
-const CharacterCreationScreen = lazy(() =>
-  import('./CharacterCreationScreen').then((m) => ({ default: m.CharacterCreationScreen }))
-);
-const WorkstationOverlay = lazy(() =>
-  import('./WorkstationOverlay').then((m) => ({ default: m.WorkstationOverlay }))
-);
-const ChatPanel = lazy(() =>
-  import('./ChatPanel').then((m) => ({ default: m.ChatPanel }))
-);
-const TeacherDashboard = lazy(() =>
-  import('./TeacherDashboard').then((m) => ({ default: m.TeacherDashboard }))
-);
-const DebriefScreen = lazy(() =>
-  import('./DebriefScreen').then((m) => ({ default: m.DebriefScreen }))
-);
-const MissionHudBanner = lazy(() =>
-  import('./MissionHudBanner').then((m) => ({ default: m.MissionHudBanner }))
-);
+import { CharacterCreationScreen } from './CharacterCreationScreen';
+import { WorkstationOverlay } from './WorkstationOverlay';
+import { ChatPanel } from './ChatPanel';
+import { TeacherDashboard } from './TeacherDashboard';
+import { DebriefScreen } from './DebriefScreen';
+import { MissionHudBanner } from './MissionHudBanner';
 
 export function Shell() {
   const screen = useShellStore((state) => state.screen);
 
   return (
-    <Suspense fallback={null}>
+    <>
       {/* Join Screen: Loaded immediately with zero bundle delay */}
       {screen === 'join' && (
         <div className="shell-container shell-container--cinematic">
@@ -79,6 +64,6 @@ export function Shell() {
 
       {/* SCR-12: Chat Panel */}
       {screen === 'in-world' && <ChatPanel />}
-    </Suspense>
+    </>
   );
 }

@@ -252,11 +252,15 @@ export function JoinScreen() {
 
       // Branch on appearance emptiness, NOT on HTTP 200 vs 201 (API Spec §14.6 / UIUXD SCR-06)
       const hasAppearance = Object.keys(result.appearance || {}).length > 0;
+      const enrichedResult = {
+        ...result,
+        displayName: result.displayName || displayName.trim(),
+      };
       if (hasAppearance) {
-        enterWorldWithExistingAppearance(result);
+        enterWorldWithExistingAppearance(enrichedResult);
         enterWorld(result.appearance as { colorScheme: string });
       } else {
-        enterCharacterCreation(result);
+        enterCharacterCreation(enrichedResult);
       }
     } catch (err) {
       if (isApiError(err)) {

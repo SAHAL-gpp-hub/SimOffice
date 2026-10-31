@@ -11,6 +11,7 @@ import { DbService } from '../db/db.service';
 // "simple allow-list" note). Growing the catalog is a content change, not a
 // schema change, consistent with DBD §3.5/§2.4's reasoning.
 export const VALID_COLOR_SCHEMES = [
+  'default',
   'bright-blue',
   'coral-red',
   'forest-green',

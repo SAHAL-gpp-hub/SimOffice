@@ -67,6 +67,7 @@ export class TeamRoom extends Room<TeamRoomState> {
         if (typeof data.x === 'number') player.x = data.x;
         if (typeof data.y === 'number') player.y = data.y;
         if (typeof data.z === 'number') player.z = data.z;
+        if (typeof data.rotationY === 'number') player.rotationY = data.rotationY;
         if (typeof data.animState === 'string') player.animState = data.animState;
       }
     });
@@ -126,10 +127,10 @@ export class TeamRoom extends Room<TeamRoomState> {
     player.rosterEntryId = auth.sub;
     player.displayName   = auth.displayName ?? auth.sub.slice(0, 6);
     
-    // Start at a default point or accept starting position if we wanted to
-    player.x = 28;
-    player.y = 1;
-    player.z = 0;
+    // Start at player spawn position (matching sceneBuilder.ts SPAWN_POSITION x=24, z=0)
+    player.x = 24 + (Math.random() - 0.5) * 2;
+    player.y = 1.1;
+    player.z = (Math.random() - 0.5) * 2;
     player.colorScheme = options.colorScheme || '';
     player.connected = true;
     this.state.players.set(client.sessionId, player);

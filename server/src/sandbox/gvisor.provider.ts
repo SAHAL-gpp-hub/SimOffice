@@ -28,11 +28,13 @@ export class GVisorProvider implements SandboxProvider {
   }
 
   private async request(endpoint: string, body: any, signal?: AbortSignal): Promise<any> {
+    const timeoutSignal = AbortSignal.timeout(4000);
+    const combinedSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
     const res = await fetch(`${this.orchestratorUrl}${endpoint}`, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify(body),
-      signal,
+      signal: combinedSignal,
     });
 
     if (!res.ok) {

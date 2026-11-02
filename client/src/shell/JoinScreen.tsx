@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useId } from 'react';
-import { joinSession, isApiError } from '../api/roster';
+import { joinSession, updateCharacter, isApiError } from '../api/roster';
 import { loginTeacher } from '../api/auth';
 import { useShellStore } from './store';
 import { enterWorld, ensureEngineInitialized } from './engineBridge';
@@ -202,7 +202,7 @@ export function JoinScreen() {
   const [loadingStatus, setLoadingStatus] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
-  const { enterCharacterCreation, enterWorldWithExistingAppearance, enterTeacherDashboard } = useShellStore();
+  const { enterWorldWithExistingAppearance, enterTeacherDashboard } = useShellStore();
 
   const handleTeacherLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,18 +250,27 @@ export function JoinScreen() {
       // JIT initialization: spin up the 3D Babylon engine now that user has authenticated
       await ensureEngineInitialized();
 
-      // Branch on appearance emptiness, NOT on HTTP 200 vs 201 (API Spec §14.6 / UIUXD SCR-06)
+      // Enter the world directly without blocking with character customization modal
       const hasAppearance = Object.keys(result.appearance || {}).length > 0;
+      const finalAppearance = hasAppearance
+        ? (result.appearance as { colorScheme: string })
+        : { colorScheme: 'default' };
+
       const enrichedResult = {
         ...result,
         displayName: result.displayName || displayName.trim(),
+        appearance: finalAppearance,
       };
-      if (hasAppearance) {
-        enterWorldWithExistingAppearance(enrichedResult);
-        enterWorld(result.appearance as { colorScheme: string });
-      } else {
-        enterCharacterCreation(enrichedResult);
+
+      if (!hasAppearance && result.rosterEntryId && result.token) {
+        updateCharacter(result.rosterEntryId, result.token, {
+          appearance: finalAppearance,
+          displayName: enrichedResult.displayName,
+        }).catch((err) => console.warn('Could not persist default character appearance:', err));
       }
+
+      enterWorldWithExistingAppearance(enrichedResult);
+      enterWorld(finalAppearance);
     } catch (err) {
       if (isApiError(err)) {
         setError(getErrorMessage(err.status, err.code));

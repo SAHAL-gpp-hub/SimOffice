@@ -17,14 +17,23 @@ function extractWildcardPath(req: any): string {
   return String(p);
 }
 
+function extractDepartment(req: any): string {
+  const h = req.headers['x-department'];
+  const q = req.query?.department;
+  const val = (Array.isArray(h) ? h[0] : h) || (Array.isArray(q) ? q[0] : q) || 'backend';
+  return String(val).toLowerCase();
+}
+
 @Controller('teams/:teamId/workstation')
 @UseGuards(RosterGuard)
 export class WorkstationController {
   constructor(private readonly workstationService: WorkstationService) {}
 
   @Get('files')
-  async listFiles(@Param('teamId') teamId: string) {
-    return this.workstationService.listFiles(teamId);
+  async listFiles(@Param('teamId') teamId: string, @Req() req: any) {
+    const dept = extractDepartment(req);
+    console.log('[WorkstationController] listFiles called for teamId:', teamId, 'department:', dept);
+    return this.workstationService.listFiles(teamId, dept);
   }
 
   @Get('files/*')
@@ -33,7 +42,7 @@ export class WorkstationController {
     @Req() req: any,
   ) {
     const rawPath = extractWildcardPath(req);
-    return this.workstationService.readFile(teamId, rawPath);
+    return this.workstationService.readFile(teamId, rawPath, extractDepartment(req));
   }
 
   @Put('files/*')
@@ -43,7 +52,7 @@ export class WorkstationController {
     @Req() req: any,
   ) {
     const rawPath = extractWildcardPath(req);
-    return this.workstationService.writeFile(teamId, rawPath, content || '', req.user);
+    return this.workstationService.writeFile(teamId, rawPath, content || '', req.user, extractDepartment(req));
   }
 
   @Post('run-check')
@@ -51,7 +60,7 @@ export class WorkstationController {
     @Param('teamId') teamId: string,
     @Req() req: any,
   ) {
-    return this.workstationService.runCheck(teamId, req.user);
+    return this.workstationService.runCheck(teamId, req.user, extractDepartment(req));
   }
 
   @Post('submit-verification')
@@ -59,6 +68,6 @@ export class WorkstationController {
     @Param('teamId') teamId: string,
     @Req() req: any,
   ) {
-    return this.workstationService.submitVerification(teamId, req.user);
+    return this.workstationService.submitVerification(teamId, req.user, extractDepartment(req));
   }
 }

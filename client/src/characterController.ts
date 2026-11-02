@@ -30,6 +30,59 @@ const STEP_UP_SPEED = 4.0;
 const WALK_ANIM_REFERENCE_SPEED = 1.6;
 const RUN_ANIM_REFERENCE_SPEED = 4.0;
 
+// Mouse sensitivity tuning:
+// Default Babylon.js ArcRotateCamera angularSensibility is 1000.0 (where higher = slower rotation).
+// 1000.0 was too sluggish (~3140px of travel for 180°), while 260 was slightly too twitchy.
+// Balanced values: 380 for X and 420 for Y provide smooth, controlled, and comfortable mouse look.
+// Camera inertia at 0.76 provides a gentle, stable deceleration without heavy input lag.
+const DEFAULT_ANGULAR_SENSIBILITY_X = 380.0;
+const DEFAULT_ANGULAR_SENSIBILITY_Y = 420.0;
+const DEFAULT_CAMERA_INERTIA = 0.76;
+
+export const CEILING_MAX_CAM_Y = 3.75;
+export const FLOOR_MIN_CAM_Y = 0.35;
+
+/**
+ * Computes dynamic pitch (beta) bounds for the ArcRotateCamera.
+ *
+ * In Babylon.js spherical coordinates:
+ *   camera.position.y = target.y + radius * cos(beta)
+ *   beta = 0: overhead zenith looking straight down at feet (top-down pitch)
+ *   beta = Math.PI / 2: horizontal eye level
+ *   beta = Math.PI: nadir looking straight up at ceiling (bottom-up pitch)
+ *
+ * To prevent the camera from piercing through the 4.0m ceiling (or 3.86m soffits)
+ * when looking down at feet, or dipping through the floor when looking up:
+ *   targetY + radius * cos(beta) <= CEILING_MAX_CAM_Y (3.75m)
+ *   targetY + radius * cos(beta) >= FLOOR_MIN_CAM_Y (0.35m)
+ */
+export function computeCameraBetaLimits(
+    targetY: number,
+    radius: number,
+    floorBaseY = 0,
+): { lowerBetaLimit: number; upperBetaLimit: number } {
+    const safeRadius = Math.max(0.1, radius);
+    const ceilingMax = floorBaseY + CEILING_MAX_CAM_Y;
+    const floorMin = floorBaseY + FLOOR_MIN_CAM_Y;
+
+    // Ceiling constraint: cos(beta) <= (ceilingMax - targetY) / radius
+    const maxCosBeta = (ceilingMax - targetY) / safeRadius;
+    const lowerBetaLimit = maxCosBeta < 1.0
+        ? Math.acos(Math.max(-1.0, Math.min(1.0, maxCosBeta)))
+        : 0.15; // When zoomed in very close, player can safely look almost straight down
+
+    // Floor constraint: cos(beta) >= (floorMin - targetY) / radius
+    const minCosBeta = (floorMin - targetY) / safeRadius;
+    const upperBetaLimit = minCosBeta > -1.0
+        ? Math.acos(Math.max(-1.0, Math.min(1.0, minCosBeta)))
+        : Math.PI - 0.15;
+
+    return {
+        lowerBetaLimit: Math.max(0.15, lowerBetaLimit),
+        upperBetaLimit: Math.min(Math.PI - 0.15, upperBetaLimit),
+    };
+}
+
 export class CharacterController {
     private scene: Scene;
     private canvas: HTMLCanvasElement;
@@ -48,6 +101,7 @@ export class CharacterController {
     private wasGrounded = false;
     private timeSinceGrounded = 0;
     private timeSinceJumpPressed = 999;
+    private inElevatorTransit = false;
 
     public model!: CharacterModel;
     private promptEl: HTMLElement | null = null;
@@ -56,17 +110,22 @@ export class CharacterController {
     private currentSitTrigger: InteractionTrigger | null = null;
 
     /**
-     * Fired when the player sits at a workstation desk.
-     * Registered in main.ts and routed through the engine bridge to open SCR-14.
+     * Fired when the player sits at a workstation desk or couch.
+     * Passes the triggering InteractionTrigger so listeners can differentiate.
      * Same callback pattern as onNetworkMove.
      */
-    public onSit?: () => void;
+    public onSit?: (trigger?: InteractionTrigger) => void;
 
     /**
      * Fired when the player stands up from a workstation desk.
      * Registered in main.ts and routed through the engine bridge to close SCR-14.
      */
     public onStand?: () => void;
+
+    /**
+     * Fired when the player interacts with an elevator trigger.
+     */
+    public onElevator?: (trigger: InteractionTrigger) => void;
 
     constructor(scene: Scene, canvas: HTMLCanvasElement, env: Environment) {
         this.scene = scene;
@@ -108,15 +167,25 @@ export class CharacterController {
         this.camera = new ArcRotateCamera("camera", 0, Math.PI / 2.8, 3.2, this.mesh.position, this.scene);
         this.camera.attachControl(this.canvas, true);
         
+        // Natural, responsive mouse look sensitivity
+        this.camera.angularSensibilityX = DEFAULT_ANGULAR_SENSIBILITY_X;
+        this.camera.angularSensibilityY = DEFAULT_ANGULAR_SENSIBILITY_Y;
+        this.camera.inertia = DEFAULT_CAMERA_INERTIA;
+
         this.camera.lowerRadiusLimit = 0.2; // Must be very small so camera can get close to target without clipping through walls
-        this.camera.upperRadiusLimit = 3.5; // Restrict max zoom to prevent pushing through the 4.5m ceiling
-        this.camera.lowerBetaLimit = 0.1;
-        this.camera.upperBetaLimit = Math.PI / 2.2; // was Math.PI - 0.2 (near-top-down) — stop well short of the ceiling
+        this.camera.upperRadiusLimit = 3.5; // Restrict max zoom
+
+        // Set safe initial pitch limits (dynamically kept in sync every frame in update())
+        const initialLimits = computeCameraBetaLimits(1.5, 3.2);
+        this.camera.lowerBetaLimit = initialLimits.lowerBetaLimit;
+        this.camera.upperBetaLimit = initialLimits.upperBetaLimit;
         
         // Fix: BabylonJS default minZ is 1.0, which near-clip-culls the character
         // mesh whenever the camera radius is < ~3m (the character is < 1.72m tall).
         // 0.05 keeps geometry precision while ensuring the character is always visible.
         this.camera.minZ = 0.05;
+        // Technique #4: Tight far clip plane to maximize z-buffer depth precision and cull geometry outside the building
+        this.camera.maxZ = 55.0;
 
         this.camera.checkCollisions = true;
         this.camera.collisionRadius = new Vector3(0.1, 0.1, 0.1);
@@ -130,11 +199,14 @@ export class CharacterController {
                 const key = evt.sourceEvent.key.toLowerCase();
                 this.inputMap[key] = true;
                 if (key === ' ') this.timeSinceJumpPressed = 0;
+                this.updateHudKey(key, true);
             })
         );
         this.scene.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, (evt) => {
-                this.inputMap[evt.sourceEvent.key.toLowerCase()] = false;
+                const key = evt.sourceEvent.key.toLowerCase();
+                this.inputMap[key] = false;
+                this.updateHudKey(key, false);
             })
         );
 
@@ -149,30 +221,96 @@ export class CharacterController {
         });
     }
 
+    private updateHudKey(key: string, isDown: boolean) {
+        const kbd = document.querySelector(`.hud-kbd[data-key="${key}"]`);
+        if (kbd) {
+            if (isDown) kbd.classList.add('hud-kbd--active');
+            else kbd.classList.remove('hud-kbd--active');
+        }
+    }
+
     private setupUI() {
         this.promptEl = document.getElementById("interactionPrompt");
         this.noticeOverlayEl = document.getElementById("noticeOverlay");
     }
 
-
-
     private openNoticeOverlay(trigger: InteractionTrigger) {
         if (!this.noticeOverlayEl) return;
         this.noticeOverlayEl.style.display = "block";
-        this.noticeOverlayEl.innerHTML = `
-            <div class="briefing-header">
-                <h2>MISSION BRIEFING</h2>
-                <div class="briefing-status">STATUS: PENDING</div>
-            </div>
-            <div class="briefing-content">
-                <p>Welcome to the Backend Engine Room.</p>
-                <p><strong>[Mission content to be authored in M0.4a]</strong></p>
-                <p>Your team's objective will appear here. For now, please verify you can navigate the room and interact with workstations.</p>
-            </div>
-            <div class="briefing-footer">
-                Press [ESC] to close
-            </div>
-        `;
+
+        if (trigger.id === 'read_incident_wall_fe') {
+            this.noticeOverlayEl.innerHTML = `
+                <div class="incident-dossier-card">
+                  <div class="incident-dossier-header">
+                    <div class="incident-dossier-title-wrap">
+                      <span class="incident-dossier-badge" style="background: rgba(244, 63, 94, 0.2); color: #FDA4AF; border-color: #F43F5E;">INCIDENT REPORT #8493</span>
+                      <h2 class="incident-dossier-title">OmniCart Storefront Cart Re-render & Hydration Freeze</h2>
+                    </div>
+                    <div class="incident-dossier-status">
+                      <span class="incident-pulse-dot" style="background: #F43F5E;"></span>
+                      P1 CRITICAL · ACTIVE
+                    </div>
+                  </div>
+                  <div class="incident-dossier-body">
+                    <div class="incident-dossier-section">
+                      <div class="incident-dossier-label">SYSTEM TELEMETRY & SYMPTOMS</div>
+                      <p class="incident-dossier-desc">
+                        100% CPU browser thread lockup when customers apply promo code SPRING50. Cart drawer desyncs due to direct array mutations, and floating-point errors prevent checkout.
+                      </p>
+                    </div>
+                    <div class="incident-dossier-action-box" style="border-left-color: #F43F5E;">
+                      <div class="incident-dossier-action-header">
+                        <span class="incident-target-icon">🎯</span>
+                        <strong>Primary Objective:</strong>
+                      </div>
+                      <p>Fix cart state immutability in <code>useCartStore.ts</code>, remove useEffect re-render loop in <code>CartDrawer.tsx</code>, and round prices in <code>pricing.ts</code>.</p>
+                    </div>
+                    <div class="incident-dossier-instruction">
+                      Approach any Frontend Engineering Workstation desk and press <kbd class="hud-kbd hud-kbd--accent">E</kbd> to open the live IDE.
+                    </div>
+                  </div>
+                  <div class="incident-dossier-footer">
+                    <span class="incident-dossier-hint">Press <kbd class="hud-kbd">ESC</kbd> to close dossier</span>
+                  </div>
+                </div>
+            `;
+        } else {
+            this.noticeOverlayEl.innerHTML = `
+                <div class="incident-dossier-card">
+                  <div class="incident-dossier-header">
+                    <div class="incident-dossier-title-wrap">
+                      <span class="incident-dossier-badge">INCIDENT REPORT #8492</span>
+                      <h2 class="incident-dossier-title">OmniCart Inventory Underflow</h2>
+                    </div>
+                    <div class="incident-dossier-status">
+                      <span class="incident-pulse-dot"></span>
+                      P1 CRITICAL · ACTIVE
+                    </div>
+                  </div>
+                  <div class="incident-dossier-body">
+                    <div class="incident-dossier-section">
+                      <div class="incident-dossier-label">SYSTEM TELEMETRY & SYMPTOMS</div>
+                      <p class="incident-dossier-desc">
+                        Customers report negative stock counts during high-traffic surges. E-commerce inventory balances are dropping below zero under concurrent race conditions.
+                      </p>
+                    </div>
+                    <div class="incident-dossier-action-box">
+                      <div class="incident-dossier-action-header">
+                        <span class="incident-target-icon">🎯</span>
+                        <strong>Primary Objective:</strong>
+                      </div>
+                      <p>Inspect and patch logic bug in <code>src/index.js</code> so stock never drops below 0.</p>
+                    </div>
+                    <div class="incident-dossier-instruction">
+                      Approach any computer workstation desk and press <kbd class="hud-kbd hud-kbd--accent">E</kbd> to open the live IDE.
+                    </div>
+                  </div>
+                  <div class="incident-dossier-footer">
+                    <span class="incident-dossier-hint">Press <kbd class="hud-kbd">ESC</kbd> to close dossier</span>
+                  </div>
+                </div>
+            `;
+        }
         this.activeReadTriggerId = trigger.id;
         
         // Release pointer lock so ESC doesn't double-fire (once to release lock, once to close UI)
@@ -216,6 +354,12 @@ export class CharacterController {
         // Clamp dt to prevent a single massive lurch after the tab was backgrounded
         // or the GC paused — anything over 100 ms is treated as 100 ms.
         const dt = Math.min(this.scene.getEngine().getDeltaTime() / 1000, 0.1);
+
+        if (this.inElevatorTransit) {
+            if (this.promptEl) this.promptEl.style.display = "none";
+            this.dispatchNetworkState();
+            return;
+        }
         
         this.timeSinceJumpPressed += dt;
         
@@ -256,8 +400,8 @@ export class CharacterController {
                 this.isGrounded = true;
                 this.currentSitTrigger = null;
 
-                // Release camera from seated position
-                this.camera.target = this.mesh.position;
+                // Release camera from seated position back to character head height
+                this.camera.target = this.mesh.position.add(new Vector3(0, 1.5, 0));
 
                 // Return model animation state to idle
                 this.model.playAnim('idle');
@@ -279,11 +423,21 @@ export class CharacterController {
             }
             
             if (this.promptEl) {
+                const crosshair = document.getElementById("crosshair");
                 if (nearest) {
-                    this.promptEl.style.display = "block";
-                    this.promptEl.innerText = nearest.type === 'SIT' ? "[E] Sit" : "[E] Read";
+                    this.promptEl.style.display = "flex";
+                    const promptTextEl = document.getElementById("interactionPromptText");
+                    const rawText = nearest.promptText || (nearest.type === 'SIT' ? "Sit at Station" : "Inspect Board");
+                    const cleanText = rawText.replace(/^\[E\]\s*/i, '');
+                    if (promptTextEl) {
+                        promptTextEl.innerText = cleanText;
+                    } else {
+                        this.promptEl.innerText = rawText;
+                    }
+                    if (crosshair) crosshair.classList.add("hud-crosshair--active");
                 } else {
                     this.promptEl.style.display = "none";
+                    if (crosshair) crosshair.classList.remove("hud-crosshair--active");
                 }
             }
             if (nearest && this.inputMap['e']) {
@@ -297,21 +451,31 @@ export class CharacterController {
                     this.mesh.rotation.y = nearest.snapRotationY || 0;
                     this.dispatchNetworkState(true);
                     
-                    // Move camera to look toward the desk / monitor.
-                    // Use the player's actual facing direction so the camera
-                    // orbits a point in front of them (toward the screen) ✅
+                    // Move camera to look toward the desk / monitor or lounge.
+                    // For workstations, orbit a point near the monitors.
+                    // For stools and lounge couches, focus on the seated character so the
+                    // camera does not clip through adjacent walls or counters.
                     const facingX = Math.sin(this.mesh.rotation.y);
                     const facingZ = Math.cos(this.mesh.rotation.y);
-                    this.camera.target = this.mesh.position.add(
-                        new Vector3(facingX * 2.0, 1.0, facingZ * 2.0),
-                    );
+                    const isWorkstation = nearest.id.startsWith('sit_eng_') || nearest.id.startsWith('sit_ws_');
+                    if (isWorkstation) {
+                        this.camera.target = this.mesh.position.add(
+                            new Vector3(facingX * 1.2, 0.8, facingZ * 1.2),
+                        );
+                    } else {
+                        this.camera.target = this.mesh.position.add(
+                            new Vector3(facingX * 0.3, 1.1, facingZ * 0.3),
+                        );
+                    }
 
-                    // Notify the React overlay to open SCR-14.
+                    // Notify listeners (and pass trigger info).
                     // Pointer lock is released by setControlsActive(false) in main.ts
-                    // after this callback fires.
-                    this.onSit?.();
+                    // after this callback fires if this is a workstation trigger.
+                    this.onSit?.(nearest);
                 } else if (nearest.type === 'READ') {
                     this.openNoticeOverlay(nearest);
+                } else if (nearest.type === 'ELEVATOR') {
+                    this.onElevator?.(nearest);
                 }
             }
         }
@@ -430,9 +594,30 @@ export class CharacterController {
 
         // Update Camera Target (Spring Arm)
         if (this.model.animState !== 'sit' && this.model.animState !== 'sitDown') {
+            const floorBaseY = this.mesh.position.y > 7.0 ? 14.0 : 0.0;
             const camTarget = this.mesh.position.add(new Vector3(0, 1.5, 0));
-            camTarget.y = Math.min(camTarget.y, 2.5); // stay clear of the ceiling at jump apex
+            camTarget.y = Math.min(camTarget.y, floorBaseY + 2.5); // stay clear of the ceiling at jump apex
             this.camera.target = Vector3.Lerp(this.camera.target, camTarget, 10 * dt);
+        }
+
+        // Dynamically constrain camera beta limits so the camera never clips through
+        // the 4.0m ceiling (or 3.86m perimeter soffits) when looking down at feet,
+        // jumping, or zooming out, and stays above the floor when looking up.
+        const currentFloorBaseY = this.mesh.position.y > 7.0 ? 14.0 : 0.0;
+        const { lowerBetaLimit, upperBetaLimit } = computeCameraBetaLimits(
+            this.camera.target.y,
+            this.camera.radius,
+            currentFloorBaseY,
+        );
+        this.camera.lowerBetaLimit = lowerBetaLimit;
+        this.camera.upperBetaLimit = upperBetaLimit;
+
+        if (this.camera.beta < lowerBetaLimit) {
+            this.camera.beta = lowerBetaLimit;
+            if (this.camera.inertialBetaOffset < 0) this.camera.inertialBetaOffset = 0;
+        } else if (this.camera.beta > upperBetaLimit) {
+            this.camera.beta = upperBetaLimit;
+            if (this.camera.inertialBetaOffset > 0) this.camera.inertialBetaOffset = 0;
         }
 
         // 4. Update Animation State Machine
@@ -462,7 +647,7 @@ export class CharacterController {
     private lastSendPayload = "";
     public onNetworkMove?: (payload: { x: number, y: number, z: number, rotationY: number, animState: string }) => void;
 
-    private dispatchNetworkState(force = false) {
+    public dispatchNetworkState(force = false) {
         if (!this.onNetworkMove) return;
 
         const now = performance.now();
@@ -484,6 +669,19 @@ export class CharacterController {
         }
     }
 
+    public setInElevator(inElevator: boolean) {
+        this.inElevatorTransit = inElevator;
+        if (inElevator) {
+            this.verticalVelocity = 0;
+            this.isGrounded = true;
+            if (this.promptEl) this.promptEl.style.display = "none";
+        }
+    }
+
+    public isInElevator(): boolean {
+        return this.inElevatorTransit;
+    }
+
     public setControlsActive(active: boolean) {
         this.controlsActive = active;
         if (!active && this.pointerLocked) {
@@ -497,6 +695,20 @@ export class CharacterController {
         }
     }
 
+    public setSensitivity(multiplier: number) {
+        if (multiplier <= 0) return;
+        this.camera.angularSensibilityX = DEFAULT_ANGULAR_SENSIBILITY_X / multiplier;
+        this.camera.angularSensibilityY = DEFAULT_ANGULAR_SENSIBILITY_Y / multiplier;
+    }
+
+    public getSensitivity(): { sensibilityX: number; sensibilityY: number; inertia: number } {
+        return {
+            sensibilityX: this.camera.angularSensibilityX,
+            sensibilityY: this.camera.angularSensibilityY,
+            inertia: this.camera.inertia,
+        };
+    }
+
     public standUp() {
         if (this.model.animState === 'sit' || this.model.animState === 'sitDown') {
             if (this.currentSitTrigger?.standPosition) {
@@ -506,11 +718,23 @@ export class CharacterController {
                 const backX = -Math.sin(facingAngle) * 0.8;
                 const backZ = -Math.cos(facingAngle) * 0.8;
                 this.mesh.position.addInPlace(new Vector3(backX, 0, backZ));
+                const floorBaseY = this.mesh.position.y > 7.0 ? 14.0 : 0.0;
+                this.mesh.position.y = floorBaseY + CAPSULE_HALF_HEIGHT;
             }
-            this.mesh.position.y = CAPSULE_HALF_HEIGHT + 0.1;
+            this.verticalVelocity = 0;
+            this.isGrounded = true;
             this.currentSitTrigger = null;
+            this.camera.target = this.mesh.position.add(new Vector3(0, 1.5, 0));
             this.model.playAnim('idle');
             this.onStand?.();
         }
+    }
+
+    public getMesh(): Mesh {
+        return this.mesh;
+    }
+
+    public getCamera(): ArcRotateCamera {
+        return this.camera;
     }
 }

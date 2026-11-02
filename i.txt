@@ -1,0 +1,2082 @@
+--
+
+<div align="center">
+
+# GOVERNMENT POLYTECHNIC PALANPUR
+### Department of IT Engineering
+
+**[IMAGE PLACEHOLDER: Government Polytechnic Palanpur Institutional Crest / Logo]**
+
+### A PROJECT REPORT ON
+# SIMOFFICE: A 3D VIRTUAL COMPANY FOR COLLABORATIVE CYBERSECURITY & DEBUGGING TRAINING
+### A Browser-Based Multiplayer 3D Simulation with Kernel-Isolated Code Execution
+
+*Submitted in Partial Fulfillment of the Requirements for the*
+**Diploma in IT Engineering**
+**(6th Semester)**
+
+**Subject: Software Development | Academic Year: 2025–2026**
+
+**Submitted By:**
+**SAHAL MANSIYA**
+**Enrollment No.: [ENROLLMENT_NO_PLACEHOLDER]**
+**6th Semester | Academic Year: 2025–2026**
+
+**Under the Guidance of:**
+**[MENTOR / GUIDE NAME LEFT BLANK AS REQUESTED]**
+Department of IT Engineering
+Government Polytechnic Palanpur
+
+**Head of Department:**
+**Prof. Kinjal Patel**
+Department of IT Engineering
+Government Polytechnic Palanpur
+
+</div>
+
+---
+
+## DECLARATION
+
+I, **Sahal Mansiya**, student of Diploma in IT Engineering, Semester 6th, Enrollment Number **[ENROLLMENT_NO_PLACEHOLDER]**, Government Polytechnic Palanpur, hereby declare that the project report entitled **"SIMOFFICE: A 3D VIRTUAL COMPANY FOR COLLABORATIVE CYBERSECURITY & DEBUGGING TRAINING"** submitted in partial fulfillment of the requirements for the subject Software Development is my own original work. This project has been carried out at the Department of IT Engineering, Government Polytechnic Palanpur.
+
+I further declare that:
+* This work has not been previously submitted to any other institution or university for the award of any certificate, diploma, or degree.
+* All architectural designs, security specifications, database models, API contracts, and software implementations presented in this report are based on genuine research and development work carried out for the SimOffice Phase 0 Pilot system.
+* Wherever external frameworks, open-source libraries, or academic literature have been referred to, full and proper credit has been given through APA-formatted references and citations.
+* This report accurately distinguishes between implemented Phase 0 capabilities, security verification procedures, and planned multi-phase enhancements.
+
+**Place:** Palanpur  
+**Date:** \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
+**Signature of Student:**  
+**Sahal Mansiya**  
+Enrollment No.: [ENROLLMENT_NO_PLACEHOLDER]
+
+*(Page i)*
+
+---
+
+## CERTIFICATE
+
+<div align="center">
+
+### GOVERNMENT POLYTECHNIC PALANPUR
+**Department of IT Engineering**
+
+</div>
+
+This is to certify that the project report entitled **"SIMOFFICE: A 3D VIRTUAL COMPANY FOR COLLABORATIVE CYBERSECURITY & DEBUGGING TRAINING"** has been prepared and submitted by **Sahal Mansiya** (Enrollment No.: **[ENROLLMENT_NO_PLACEHOLDER]**) as a partial fulfillment of the requirement for the subject Software Development of Diploma in IT Engineering, Semester 6th, at Government Polytechnic Palanpur, during the academic year 2025–2026.
+
+The project has been carried out under departmental supervision. To the best of our knowledge and belief, this work is original and has not been submitted to any other institution or university for the award of any certificate or diploma.
+
+The project fulfills the requirements as per the regulations of this institution, and in our opinion, it meets the necessary academic and technical standards for submission.
+
+<br><br>
+
+**Signature of Guide:**  
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_  
+**[Guide Name Placeholder]**  
+Lecturer, Department of IT Engineering  
+Govt. Polytechnic Palanpur  
+**Date:** \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
+**Head of Department:**  
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_  
+**Prof. Kinjal Patel**  
+Head of Department, Department of IT Engineering  
+Govt. Polytechnic Palanpur  
+**Date:** \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
+*(Page ii)*
+
+---
+
+## ABSTRACT
+
+Cybersecurity and software debugging are predominantly taught in academic institutions through static, isolated exercises such as sanitized code snippets, individual command-line challenges, or learning management system (LMS) worksheets. While these methods test individual syntax familiarity, they fail to simulate the collaborative, spatial, and organizational realities of professional incident response, where engineers must triage ambiguous symptoms, coordinate across roles, and diagnose defects under time constraints.
+
+**SimOffice** is a browser-based, multiplayer 3D virtual company simulation developed to transform collaborative debugging and secure-coding education into an embodied, team-oriented experience. In SimOffice, a teacher acts as an engineering director who configures a live session, selects a software project scenario and difficulty tier, and plants a curated defect (such as a logic bug, security vulnerability, or misconfiguration) into a real, runnable codebase. Students join the session via a lightweight class-scoped identity, enter the headquarters through an architectural 3D exterior (`[3D/Entry]`), control physics-driven stylized 3D avatars in a shared office building (`[3D/HUD]`), and sit at in-world workstations (`[Hybrid]`) to inspect, edit, test, and verify their team's slice of the codebase in real time.
+
+The Phase 0 Pilot Edition of SimOffice is engineered using **Babylon.js 8.x** and **React 19 (TypeScript + Vite)** on the client, a unified **Node.js 24 LTS + NestJS + Colyseus 0.17.x** application server for RESTful APIs and real-time WebSocket room synchronization, **PostgreSQL 17.x** as the relational system of record, and **Valkey 8.x** for presence and rate-limiting. The entire pilot stack is containerized via **Docker Compose** behind an **Nginx** reverse proxy to operate on a single low-cost Virtual Private Server (VPS) or existing campus lab hardware at $0–$10/month without sacrificing security.
+
+The centerpiece of SimOffice's engineering is its **Trust-Zone Sandbox Architecture**. Because executing arbitrary student-authored code and grading it in a classroom environment presents severe tampering and denial-of-service risks, SimOffice implements an **"Injection-Over-Mount"** verification model behind a unified `SandboxProvider` interface (supporting both **gVisor `runsc`** via a narrow-privilege `sandbox-orchestrator` service and **E2B Firecracker microVMs**). The grading verification harness never exists inside the student-writable `/workspace` filesystem; instead, it is injected transiently by the server into an ephemeral, isolated execution context against a point-in-time snapshot of the student's code. Furthermore, strict per-environment resource ceilings (**1 vCPU, 512 MB RAM, and a 30-second per-check wall-clock timeout**) protect shared host infrastructure from infinite loops or fork bombs. Privacy-by-design is enforced through a two-tier identity model where students use credential-free, class-scoped `RosterEntry` records with human-friendly passcodes (e.g., `WOLF-42`) and automated in-place anonymization jobs.
+
+**Keywords:** SimOffice, 3D Collaborative Learning, Babylon.js, Colyseus Multiplayer, NestJS, gVisor Sandbox, Firecracker MicroVM, Injection-Over-Mount, Tamper-Resistant Verification, Cybersecurity Education, Diegetic UI, Privacy-by-Design.
+
+*(Page iii)*
+
+---
+
+## ACKNOWLEDGEMENT
+
+I take this opportunity to express my deep sense of gratitude and sincere thanks to all those who have contributed to the successful design, implementation, and documentation of the **SimOffice** project.
+
+First and foremost, I express my sincere gratitude to **Prof. Kinjal Patel**, Head of the Department of IT Engineering, Government Polytechnic Palanpur, for providing the academic infrastructure, laboratory facilities, and continuous institutional encouragement required to undertake an ambitious full-stack 3D multiplayer and sandboxed systems engineering project.
+
+I also extend my heartfelt thanks to my project guide **[Guide Name Placeholder]** and all faculty members of the Department of IT Engineering, Government Polytechnic Palanpur. Their insights into classroom management, practical laboratory workflows, and student engagement directly inspired SimOffice's teacher dashboard, non-punitive debriefing mechanics, and campus-network deployment model.
+
+Finally, I acknowledge the open-source engineering communities behind Babylon.js, React, Colyseus, NestJS, PostgreSQL, Valkey, gVisor (`runsc`), and E2B, whose comprehensive technical documentation and runtime tools made it possible to build a production-grade kernel-isolated simulation architecture suited for academic environments.
+
+<br><br>
+
+**Place:** Palanpur  
+**Date:** \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
+**Sahal Mansiya**  
+Enrollment No.: [ENROLLMENT_NO_PLACEHOLDER]  
+6th Semester, Department of IT Engineering  
+Government Polytechnic Palanpur
+
+*(Page iv)*
+
+---
+
+## TABLE OF CONTENTS
+
+* **DECLARATION** .......................................................................................................... i
+* **CERTIFICATE** .......................................................................................................... ii
+* **ABSTRACT** ............................................................................................................... iii
+* **ACKNOWLEDGEMENT** .......................................................................................... iv
+* **TABLE OF CONTENTS** ............................................................................................ v
+* **LIST OF FIGURES** .................................................................................................... viii
+* **LIST OF TABLES** ...................................................................................................... ix
+* **LIST OF ACRONYMS** .............................................................................................. x
+* **CHAPTER 1 — INTRODUCTION** ............................................................................ 1
+  * 1.1 INTRODUCTION
+  * 1.2 BACKGROUND OF TECHNICAL & SECURITY EDUCATION
+  * 1.3 PROBLEM STATEMENT
+  * 1.4 OBJECTIVES OF THE PROJECT
+  * 1.5 SCOPE OF THE PROJECT (PHASE 0 MVP VS. MULTI-PHASE ROADMAP)
+  * 1.6 MOTIVATION
+  * 1.7 REPORT ORGANIZATION
+* **CHAPTER 2 — SYSTEM OVERVIEW & REQUIREMENT ANALYSIS** ................. 9
+  * 2.1 EXISTING CLASSROOM & SANDBOX SYSTEMS
+  * 2.2 LIMITATIONS OF EXISTING SYSTEMS
+  * 2.3 PROPOSED SYSTEM: SIMOFFICE
+  * 2.4 TARGET USERS AND PERSONA ANALYSIS
+  * 2.5 COMPARISON: EXISTING TOOLS VS. SIMOFFICE
+  * 2.6 PHASED ROLLOUT & PHASE 0 EXIT CRITERIA
+  * 2.7 NON-FUNCTIONAL & COMPLIANCE REQUIREMENTS
+* **CHAPTER 3 — SYSTEM ARCHITECTURE & SECURITY DESIGN** .................... 19
+  * 3.1 ARCHITECTURAL GOALS AND CONSTRAINTS
+  * 3.2 HIGH-LEVEL COMPONENT TOPOLOGY
+  * 3.3 TECHNOLOGY STACK SELECTION (PILOT EDITION)
+  * 3.4 THREE-LAYER FRONTEND ARCHITECTURE (`[3D/ENTRY]`, `[SHELL]`, `[3D/HUD]`, `[HYBRID]`)
+  * 3.5 UNIFIED BACKEND & REAL-TIME MULTIPLAYER ARCHITECTURE
+  * 3.6 TRUST-ZONE & SANDBOX ARCHITECTURE ("INJECTION-OVER-MOUNT")
+  * 3.7 THREAT MODEL, RESOURCE CEILINGS & NETWORK ISOLATION
+  * 3.8 DATABASE ARCHITECTURE & ENTITY-RELATIONSHIP DESIGN
+  * 3.9 SCALABILITY SEAMS: PILOT TO MULTI-INSTITUTION PRODUCTION
+* **CHAPTER 4 — MODULES & WORKFLOW DESCRIPTION** ............................... 33
+  * 4.1 TWO-TIER AUTHENTICATION & IDENTITY MODULE
+  * 4.2 CLASS, ROSTER & PRIVACY ANONYMIZATION MODULE
+  * 4.3 SESSION LIFECYCLE & LOBBY MANAGEMENT MODULE
+  * 4.4 3D AVATAR, ENTRY SCENE & INTERACTIVE WORLD MODULE
+  * 4.5 IN-WORLD WORKSTATION & CODE EXECUTION MODULE
+  * 4.6 TAMPER-RESISTANT VERIFICATION & GRADING MODULE
+  * 4.7 TEACHER LIVE DASHBOARD, HINTS & ANNOUNCEMENTS MODULE
+  * 4.8 NON-PUNITIVE DEBRIEF & "REVEAL FIX" MODULE
+* **CHAPTER 5 — IMPLEMENTATION DETAILS** ...................................................... 45
+  * 5.1 REPOSITORY STRUCTURE & DEVELOPMENT ENVIRONMENT
+  * 5.2 CONTAINERIZED DEPLOYMENT TOPOLOGY (`DOCKER-COMPOSE` & NGINX)
+  * 5.3 SANDBOX PROVIDER INTERFACE & ORCHESTRATOR IMPLEMENTATION
+  * 5.4 COLYSEUS ROOM SCHEMA & RESILIENCE IMPLEMENTATION
+  * 5.5 REST API & WEBSOCKET IMPLEMENTATION CONTRACTS
+  * 5.6 DATABASE SCHEMA, VIEWS & RETENTION SQL IMPLEMENTATION
+* **CHAPTER 6 — TESTING & SECURITY VERIFICATION** ..................................... 57
+  * 6.1 MULTI-TIER TESTING STRATEGY
+  * 6.2 SECURITY PROOF-OF-CONCEPT (POC) VERIFICATION PLAN
+  * 6.3 FUNCTIONAL & API CONTRACT TEST CASES
+  * 6.4 REAL-TIME MULTIPLAYER & RESILIENCE TEST CASES
+  * 6.5 ACCESSIBILITY & DEVICE BASELINE VERIFICATION PROTOCOL
+  * 6.6 IMPLEMENTATION AUDIT & VERIFICATION STATUS SUMMARY
+* **CHAPTER 7 — USER INTERFACE DESIGN & SYSTEM SCREENS** ....................... 67
+  * 7.1 UI/UX DESIGN PRINCIPLES & TAXONOMY
+  * 7.2 BUILDING EXTERIOR & DIEGETIC ACCESS PANEL (`SCR-00`, `SCR-01`, `SCR-06`)
+  * 7.3 TEACHER SHELL SCREENS (`SCR-02` TO `SCR-05`, `SCR-15` TO `SCR-19`)
+  * 7.4 STUDENT ONBOARDING, 3D HUD & WORKSTATION (`SCR-07` TO `SCR-14`)
+  * 7.5 SYSTEM RESILIENCE, ERROR & DEBRIEF SCREENS (`SCR-20` TO `SCR-26`)
+* **CHAPTER 8 — CONCLUSION AND FUTURE WORK** ........................................... 79
+  * 8.1 CONCLUSION
+  * 8.2 SUMMARY OF TECHNICAL ACHIEVEMENTS
+  * 8.3 KNOWN LIMITATIONS & OPEN VALIDATION ITEMS
+  * 8.4 FUTURE ENHANCEMENTS (PHASES 1, 2, AND 3)
+  * 8.5 FINAL REMARKS
+* **REFERENCES** .......................................................................................................... 85
+* **APPENDIX A — INSTALLATION, SETUP & DOCKER DEPLOYMENT GUIDE** .... 87
+* **APPENDIX B — POSTGRESQL DATABASE DDL, VIEWS & RETENTION SQL** ... 90
+* **APPENDIX C — REST API & WEBSOCKET ENDPOINT REFERENCE** ................. 94
+* **APPENDIX D — GLOSSARY OF TECHNICAL TERMS** .......................................... 98
+
+*(Page v–vii)*
+
+---
+
+## LIST OF FIGURES
+
+| Figure No. | Title | Section |
+| :--- | :--- | :--- |
+| **Figure 3.1** | SimOffice High-Level Component Topology (Client, Host Docker Compose, Sandbox) | 3.2 |
+| **Figure 3.2** | Deployment & Network Isolation Topology (Single-Port `:443` Nginx Exposure) | 3.5 |
+| **Figure 3.3** | Trust-Zone Architecture & Boundary Map (Untrusted, Semi-Trusted, Trusted Zones) | 3.6 |
+| **Figure 3.4** | "Injection-Over-Mount" Ephemeral Verification Execution Flow | 3.6 |
+| **Figure 3.5** | SimOffice Entity-Relationship Diagram (PostgreSQL 17.x Core Schema) | 3.8 |
+| **Figure 4.1** | Two-Tier Authentication & Persistent Class-Scoped Roster Join Sequence | 4.1 |
+| **Figure 4.2** | Session Lifecycle State Machine (`Created` → `Provisioning` → `Active` → `Ended` → `Debriefed` → `TornDown`) | 4.3 |
+| **Figure 4.3** | Session Creation, Pre-Start Lobby Roaming, and Start Provisioning Sequence | 4.3 |
+| **Figure 4.4** | Workstation File Edit, Informal Check, and Protected Verification Sequence | 4.6 |
+| **Figure 4.5** | Late-Join, Unintentional Disconnect ("Stepped Away"), and Reconnect Sequence | 4.4 |
+| **Figure 7.1** | `[IMAGE PLACEHOLDER]` `SCR-00`: Building Exterior & Diegetic Access Panel (Idle & Authenticating States) | 7.2 |
+| **Figure 7.2** | `[IMAGE PLACEHOLDER]` `SCR-01` & `SCR-06`: Teacher Administration Login vs. Student Session Join Variants | 7.2 |
+| **Figure 7.3** | `[IMAGE PLACEHOLDER]` `SCR-02` & `SCR-03`: Teacher Class List & Reactive Roster Management | 7.3 |
+| **Figure 7.4** | `[IMAGE PLACEHOLDER]` `SCR-04` & `SCR-05`: Session Setup Configuration & Live Lobby Control | 7.3 |
+| **Figure 7.5** | `[IMAGE PLACEHOLDER]` `SCR-07` & `SCR-08`: Student Character Creation & First-Day Onboarding Course HUD | 7.4 |
+| **Figure 7.6** | `[IMAGE PLACEHOLDER]` `SCR-09`, `SCR-10`, `SCR-11`: Contextual Prompts, Mission Briefing Board & Desk Status | 7.4 |
+| **Figure 7.7** | `[IMAGE PLACEHOLDER]` `SCR-12` & `SCR-13`: Non-Modal Department Chat Panel & Teammate Ping Indicator | 7.4 |
+| **Figure 7.8** | `[IMAGE PLACEHOLDER]` `SCR-14` & `SCR-22`: Hybrid Workstation Code Editor Overlay & Resource-Limit Outcome | 7.4 |
+| **Figure 7.9** | `[IMAGE PLACEHOLDER]` `SCR-15`, `SCR-16`, `SCR-17`, `SCR-18`: Teacher Live Dashboard, Hint, Announcement & End Modal | 7.3 |
+| **Figure 7.10** | `[IMAGE PLACEHOLDER]` `SCR-19` & `SCR-20`: Non-Punitive Teacher Debrief ("Reveal Fix") & Student Personal Debrief | 7.5 |
+| **Figure 7.11** | `[IMAGE PLACEHOLDER]` `SCR-21`, `SCR-24`, `SCR-25`: Verification Confirmation, Stepped-Away Avatar & Late-Join HUD | 7.5 |
+
+*(Page viii)*
+
+---
+
+## LIST OF TABLES
+
+| Table No. | Title | Section |
+| :--- | :--- | :--- |
+| **Table 1.1** | SimOffice Phased Rollout Summary (Phase 0 MVP through Phase 3) | 1.5 |
+| **Table 2.1** | Limitations of Existing Classroom & Coding Sandbox Systems | 2.2 |
+| **Table 2.2** | Feature Comparison: Existing Classroom Tools vs. SimOffice | 2.5 |
+| **Table 2.3** | Phase 0 Quantitative Exit Criteria & Go/No-Go Thresholds | 2.6 |
+| **Table 2.4** | Injected-Issue Difficulty & Category Taxonomy | 2.7 |
+| **Table 3.1** | Component Responsibility Matrix | 3.2 |
+| **Table 3.2** | Technology Stack Selection: Production (v1.0) vs. Pilot Edition (v2.1) | 3.3 |
+| **Table 3.3** | Pilot Infrastructure Cost Breakdown ($0–$10/Month Envelope) | 3.3 |
+| **Table 3.4** | Concrete Sandbox Implementations: `E2BProvider` vs. `GVisorProvider` | 3.6 |
+| **Table 3.5** | Threat Actors, Capabilities, and Architectural Defenses | 3.7 |
+| **Table 3.6** | Enforced Per-Environment Resource Ceilings (Pilot Defaults) | 3.7 |
+| **Table 3.7** | Scalability Seams: Where Multi-Institution Production Diverges from Pilot | 3.9 |
+| **Table 4.1** | Two-Tier Identity & JWT Token Comparison (Teacher vs. Student Roster) | 4.1 |
+| **Table 4.2** | Colyseus Real-Time Room Methods & Server-Authoritative Behaviors | 4.4 |
+| **Table 5.1** | SimOffice Repository Directory Structure (`SAHAL-gpp-hub/SimOffice`) | 5.1 |
+| **Table 5.2** | Security & Application Error Code Reference | 5.5 |
+| **Table 6.1** | Pre-Pilot Security Proof-of-Concept (PoC) Verification Matrix | 6.2 |
+| **Table 6.2** | Functional & API Contract Test Cases | 6.3 |
+| **Table 6.3** | Real-Time Multiplayer, Desk Conflict, and Resilience Test Cases | 6.4 |
+| **Table 6.4** | Requirements-to-Implementation & Verification Traceability Summary | 6.6 |
+| **Table 7.1** | Core UI/UX Design Principles (P1–P8) and Excluded Anti-Patterns | 7.1 |
+| **Table 7.2** | Complete Phase 0 Screen Taxonomy (`SCR-00` through `SCR-26`) | 7.1 |
+
+*(Page ix)*
+
+---
+
+## LIST OF ACRONYMS
+
+| Abbreviation | Full Form |
+| :--- | :--- |
+| **API** | Application Programming Interface |
+| **AWDD** | Asset and World Design Document |
+| **CDN** | Content Delivery Network |
+| **COPPA** | Children's Online Privacy Protection Act |
+| **CPU / vCPU** | Central Processing Unit / Virtual Central Processing Unit |
+| **CRUD** | Create, Read, Update, Delete |
+| **DBD** | Database Design Document |
+| **DDL** | Data Definition Language |
+| **DOM** | Document Object Model |
+| **ERD** | Entity-Relationship Diagram |
+| **FERPA** | Family Educational Rights and Privacy Act |
+| **FPS** | Frames Per Second |
+| **GDD** | Game Design Document |
+| **GDPR-K** | General Data Protection Regulation (Children's Provisions) |
+| **GKE** | Google Kubernetes Engine |
+| **HUD** | Heads-Up Display |
+| **HTTPS / WSS** | HyperText Transfer Protocol Secure / WebSocket Secure |
+| **IaC** | Infrastructure as Code |
+| **IdP** | Identity Provider |
+| **JSON / JSONB** | JavaScript Object Notation / Binary JSON |
+| **JWT** | JSON Web Token |
+| **LAN** | Local Area Network |
+| **LMS** | Learning Management System |
+| **MVP** | Minimum Viable Product |
+| **NFR** | Non-Functional Requirement |
+| **PII** | Personally Identifiable Information |
+| **PoC** | Proof of Concept |
+| **PRD** | Product Requirements Document |
+| **QA** | Quality Assurance |
+| **REST** | Representational State Transfer |
+| **SAD** | System Architecture Document |
+| **SLA** | Service-Level Agreement |
+| **SOC** | Security Operations Center |
+| **SQL** | Structured Query Language |
+| **SSD** | Security and Sandbox Design |
+| **SSO** | Single Sign-On |
+| **TDD** | Technical Design Document |
+| **TLS** | Transport Layer Security |
+| **TP** | Testing Plan |
+| **TSSD** | Technology Stack Selection Document |
+| **UI / UX** | User Interface / User Experience |
+| **UIUXD** | UI/UX Design Document |
+| **UUID** | Universally Unique Identifier |
+| **VM / microVM** | Virtual Machine / Micro Virtual Machine |
+| **VPS** | Virtual Private Server |
+| **WAF** | Web Application Firewall |
+| **WebGL** | Web Graphics Library |
+
+*(Page x)*
+
+---
+
+# CHAPTER 1 — INTRODUCTION
+
+## 1.1 INTRODUCTION
+
+Software engineering and cybersecurity in the modern industry are fundamentally collaborative, spatial, and system-oriented disciplines. When a production outage, logic defect, or security incident occurs inside a technology company, engineers rarely solve it in complete isolation. Instead, they triage user-reported symptoms, examine logs, communicate across specialized organizational departments (Frontend, Backend, DevOps, and Quality Assurance), gather around shared monitors, and verify patches against live environments under time pressure.
+
+Despite this reality, computer science and information technology education in polytechnic colleges and universities continues to rely heavily on static, solitary exercises. Students are typically presented with a pre-isolated snippet of broken code or an individual command-line challenge, given no teammates to coordinate with, and graded via a binary pass/fail script.
+
+**SimOffice** addresses this pedagogical gap by introducing a browser-based, multiplayer 3D simulation that recreates the experience of working inside a real software company (PRD v3.1 §1). In SimOffice, students control a physics-driven, stylized 3D character who walks, jumps, and interacts within a virtual corporate headquarters. A teacher acts as the company's Engineering Director: opening a live session, selecting a software project scenario and difficulty tier, and injecting a deliberate defect into a real, runnable codebase. Students join department teams, read symptom-only mission briefings from in-world notice boards, sit down at physical 3D workstations to open their department's code slice via a diegetic monitor overlay, and collaborate in real time to diagnose, patch, and verify the fix inside a kernel-isolated execution sandbox.
+
+## 1.2 BACKGROUND OF TECHNICAL & SECURITY EDUCATION
+
+In technical diploma and degree programs—such as the Diploma in IT Engineering at Government Polytechnic Palanpur—practical laboratory sessions are the primary venue where students transition from theoretical concepts to applied software development. However, instructors running debugging or cybersecurity labs face three persistent structural barriers:
+
+1. **Lack of Organizational Context:** Traditional lab assignments hand the student the exact file containing the bug. Students rarely practice *triage*—translating a vague customer symptom (e.g., *"Customers report their payment sometimes fails silently"*) into a root-cause hypothesis across multiple service files.
+2. **Absence of Visible Collaboration:** When students work on individual web forms or local IDEs, teamwork is invisible. Instructors cannot easily see from across the lab who is actively investigating, who is disconnected, or how a team is dividing its diagnostic workload.
+3. **The Sandbox Security & Cost Dilemma:** Giving students a real, runnable backend service to edit and execute in the browser introduces severe infrastructure risks. Students may accidentally write infinite loops that starve the server, or curious students may attempt to "game" the grading system by deleting or modifying the unit test that checks their work. Conversely, commercial cloud sandboxes and multi-tenant Kubernetes clusters often cost hundreds of dollars per month, placing them out of reach for self-funded academic deployments.
+
+SimOffice was conceived and engineered specifically to resolve all three barriers simultaneously: combining a playful, *Fall Guys*-inspired 3D social world with a rigorous, tamper-resistant, near-zero-cost ($0–$10/month) kernel-isolated code execution backend (TSSD v2.1 §1, §7).
+
+## 1.3 PROBLEM STATEMENT
+
+The existing approaches to teaching collaborative software debugging and cybersecurity suffer from the following core problems (PRD v3.1 §2, SSD v1.0 §2):
+
+* **Isolated, Non-Collaborative Exercises:** Standard coding platforms evaluate students individually on sanitized snippets, failing to teach cross-role communication, incident triage, or shared ownership.
+* **No Spatial or Social Presence:** Flat web tools and LMS worksheets lack a sense of place. Students cannot see teammates working beside them, gather around a desk to inspect a suspicious function, or experience the social momentum of a shared team room.
+* **High Teacher Setup Overhead & Low Observability:** Instructors lack turnkey tools to spin up a controlled "live incident" across a class section, inject varied defects so sections cannot copy answers, and monitor live team progress or drop targeted hints without micromanaging.
+* **Vulnerability to Verification Tampering:** In conventional client-accessible coding environments, students can inspect, delete, or hardcode return values into the grading test script to fake a "pass" without fixing the underlying defect (PRD §8.5).
+* **Resource Starvation on Shared Lab Infrastructure:** Arbitrary student code executed during debugging exercises frequently contains runaway `while(true)` loops, memory leaks, or fork bombs that can crash a shared college server if per-team CPU, memory, and wall-clock ceilings are not strictly enforced (PRD §8.6).
+* **Student Privacy & Account Friction:** Requiring students to register with personal emails, real names, or third-party Single Sign-On (SSO) accounts creates compliance hurdles (COPPA/FERPA/GDPR-K) and wastes valuable lab time during onboarding (PRD §15.1, §16.6).
+
+## 1.4 OBJECTIVES OF THE PROJECT
+
+### 1.4.1 Primary Objectives
+
+1. **Build an Embodied 3D Multiplayer Workplace:** Develop a browser-based 3D simulation using Babylon.js and Colyseus where students navigate a virtual company building (starting with the architectural Building Exterior `SCR-00` and Backend Engine Room in Phase 0) with real-time avatar synchronization.
+2. **Implement a Diegetic In-World Workstation Loop:** Enable students to physically sit at an in-world desk to open a scoped, auto-saving code editor (`[Hybrid]` layer) connected to a live, isolated team codebase without breaking immersion via browser popups (PRD §8.2, §16.1).
+3. **Enforce "Injection-Over-Mount" Verification Tamper Resistance:** Architect a strict trust-zone separation where the grading verification harness never exists in the student-writable `/workspace` path, but is injected transiently by the server into an ephemeral execution context against a snapshot of the student's code (PRD §8.5, SAD §7.2, SSD §3).
+4. **Guarantee Kernel-Level Isolation & Resource Ceilings:** Abstract code execution behind a `SandboxProvider` interface supporting gVisor (`runsc`) and E2B Firecracker sandboxes, enforcing per-environment ceilings of **1 vCPU, 512 MB RAM, and a 30-second check timeout** (PRD §8.6, SAD §7.4).
+5. **Deliver a Privacy-Preserving Two-Tier Identity Model:** Provide credentialed accounts for teachers while allowing students to join via 6-character session codes and persistent, class-scoped `RosterEntry` passcodes (e.g., `WOLF-42`), collecting zero unnecessary PII and supporting automated data anonymization (PRD §15.1, §15.5, API Spec §3.2).
+6. **Provide Non-Punitive Debriefing & Teacher Oversight:** Equip teachers with a live dashboard (tracking seated status, check progress, hints, and announcements) and a post-session debrief screen that distinguishes partial diagnostic progress from total failure and includes a deliberate teacher-triggered **"Reveal Fix"** control (PRD §12.10, §13.3, UIUXD §8).
+
+### 1.4.2 Secondary Objectives
+
+7. **Optimize for Single-College Pilot Economics:** Package the entire backend, database, cache, reverse proxy, and sandbox orchestrator via Docker Compose to run on a single $0–$10/month VPS or campus lab machine while preserving clean architectural seams for future Kubernetes scaling (TSSD v2.1 §5, SAD §17).
+8. **Ensure Classroom Session Resilience:** Handle late student joins, mid-session network drops ("stepped away" seat preservation), simultaneous desk-interaction conflicts, early teacher session termination, and 20-minute abandoned-session auto-teardown (PRD §12.13, SAD §8.3).
+9. **Support Accessibility & Baseline School Hardware:** Enforce a unified keyboard-reachable input-mapping layer, visual/captioned equivalents for all audio cues, `prefers-reduced-motion` camera fallbacks, and WebGL-unavailable 2D fallbacks suitable for Chromebook-class devices (PRD §9.6, §16.2, §16.5, UIUXD §10).
+
+## 1.5 SCOPE OF THE PROJECT (PHASE 0 MVP VS. MULTI-PHASE ROADMAP)
+
+To mitigate execution risk, SimOffice is architected across four distinct phases (PRD v3.1 §5). **This project report documents the complete multi-phase architecture and the completed Phase 0 MVP Pilot implementation** pushed to the project repository (`SAHAL-gpp-hub/SimOffice`)[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fgithub.com%2FSAHAL-gpp-hub%2FSimOffice)].
+
+| Phase | Scope & Key Capabilities | Status in Current Implementation |
+| :--- | :--- | :--- |
+| **Phase 0 — MVP ("Prove the Mechanic, Prove the Space")** | • Building Exterior (`SCR-00`), Lobby/Onboarding Course (minimal), and **Backend Department Room**.<br>• Single-department mode, Beginner tier, 1 scenario / 1 logic-bug variant (`backend-payment-bug-001`)[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fgithub.com%2FSAHAL-gpp-hub%2FSimOffice)].<br>• Two-tier auth (Teacher JWT + Student `RosterEntry` passcode).<br>• Real-time Colyseus room sync, text chat, pings, emotes, deterministic desk conflict.<br>• Hybrid workstation editor (`SCR-14`), `SandboxProvider` (`GVisorProvider`/`E2BProvider`), injection-over-mount verification, resource ceilings.<br>• Teacher 2D Live Dashboard (`SCR-15`), hints, announcements, non-punitive debrief (`SCR-19`/`20`), and "Reveal Fix" endpoint.<br>• Full resilience (late join, disconnect/reconnect, unconditional teardown). | **Completed & Pushed to GitHub (`main` branch)**[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fgithub.com%2FSAHAL-gpp-hub%2FSimOffice)] |
+| **Phase 1 — Multi-Department Core Loop** | • Frontend Studio, DevOps Control Room, QA Testing Lab, Conference Room, and Elevator floor navigation.<br>• Multi-department team assignment (manual, self-select, auto-balanced) and sub-team splitting.<br>• In-world Scoreboard Wall, basic XP/badges, and ≥15 issue variants across 4 departments. | **Architected & Schema-Ready (Deferred to Phase 1)** |
+| **Phase 2 — Full Incident Realism** | • Security Operations Center (SOC) and Mentor's Office 3D holo-table war room.<br>• Security-vulnerability and malicious-script categories (gated on legal review).<br>• Layered/multi-issue incidents (`issue_ordinal`), teacher 3D spectator camera, and walkable timeline replay. | **Architected & Schema-Ready (Deferred to Phase 2)** |
+| **Phase 3 — Scale & Polish** | • Full scenario catalog across 7 technology domains (AI/ML, Web3, IoT, etc.).<br>• Proximity voice chat (with mandatory text-channel parity), full cosmetic economy, Wall of Fame, and multi-institution Kubernetes/SSO deployment. | **Planned (Long-Term Roadmap)** |
+
+*Table 1.1: SimOffice Phased Rollout Summary (PRD v3.1 §5, §10.4)*
+
+## 1.6 MOTIVATION
+
+The motivation for SimOffice stems from both educational observation and systems-engineering challenge. In standard software development laboratories, students frequently treat debugging as a solitary, frustrating chore—staring at error messages alone until time expires. Yet those same students enthusiastically collaborate, communicate, and strategize when playing multiplayer games with spatial awareness.
+
+From an engineering perspective, building SimOffice provided an opportunity to solve hard, real-world distributed systems problems that go far beyond a standard CRUD application: combining 3D WebGL rendering (Babylon.js) with authoritative state synchronization (Colyseus), designing a zero-trust code verification pipeline ("injection-over-mount"), isolating untrusted student processes with kernel-level container runtimes (`runsc`), and engineering a complete 15-document specification suite that bridges product vision to verifiable code.
+
+## 1.7 REPORT ORGANIZATION
+
+This report is organized into eight chapters and four appendices:
+* **Chapter 1 — Introduction:** Presents the project context, background, problem statement, objectives, Phase 0 vs. multi-phase scope, and motivation.
+* **Chapter 2 — System Overview & Requirement Analysis:** Analyzes existing classroom and coding tools, their limitations, SimOffice's proposed solution, user personas, Phase 0 exit criteria, and non-functional/compliance requirements.
+* **Chapter 3 — System Architecture & Security Design:** Details the 3-tier topology, Pilot technology stack, 3-layer frontend, unified NestJS/Colyseus backend, Trust-Zone Sandbox ("Injection-Over-Mount"), resource ceilings, PostgreSQL ERD, and production scalability seams.
+* **Chapter 4 — Modules & Workflow Description:** Explains all eight core functional modules, state machines, and sequence flows.
+* **Chapter 5 — Implementation Details:** Examines the repository structure (`SAHAL-gpp-hub/SimOffice`)[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fgithub.com%2FSAHAL-gpp-hub%2FSimOffice)], Docker Compose + Nginx setup, `SandboxProvider` TypeScript contracts, Colyseus schemas, REST API endpoints, and database views/retention SQL.
+* **Chapter 6 — Testing & Security Verification:** Documents the multi-tier testing strategy, the 7 pre-pilot Security PoC verification tests, functional/resilience test cases, device baseline protocols, and implementation status audit.
+* **Chapter 7 — User Interface Design & System Screens:** Presents the UI/UX design principles, screen taxonomy (`SCR-00` to `SCR-26`), and detailed visual specifications with structured image placeholders.
+* **Chapter 8 — Conclusion and Future Work:** Summarizes project achievements, transparently records current limitations and open validation items, and outlines the Phase 1–3 roadmap.
+
+---
+
+# CHAPTER 2 — SYSTEM OVERVIEW & REQUIREMENT ANALYSIS
+
+## 2.1 EXISTING CLASSROOM & SANDBOX SYSTEMS
+
+Currently, educational institutions teach programming, debugging, and cybersecurity through three disconnected categories of tools:
+
+1. **Learning Management Systems (LMS) & Static Worksheets:** Platforms such as Moodle, Google Classroom, or paper lab manuals distribute problem descriptions and code snippets. Students edit code locally and upload files or screenshots for manual grading by faculty.
+2. **Algorithmic & Competitive Coding Platforms:** Tools like LeetCode, HackerRank, or Codeforces provide browser-based editors and automated test runners. However, they focus on single-file algorithmic puzzles rather than multi-file application debugging, and they are strictly single-player.
+3. **Browser-Based Cloud IDEs & CTF Platforms:** Platforms such as GitHub Codespaces, Replit, or traditional Capture-The-Flag (CTF) portals provide full development environments or vulnerable containers. However, cloud IDEs lack game-like spatial presence, structured incident briefings, or teacher observability dashboards, while CTF portals focus on penetration testing commands rather than collaborative software engineering triage across organizational roles.
+
+## 2.2 LIMITATIONS OF EXISTING SYSTEMS
+
+Table 2.1 summarizes the operational, pedagogical, and security limitations of existing classroom debugging methods:
+
+| Issue / Limitation | Impact on Classroom Operations & Pedagogy | Severity |
+| :--- | :--- | :--- |
+| **Single-player, isolated workflows** | Students do not practice team triage, role division, or collaborative root-cause analysis. | High |
+| **Client-accessible test harnesses** | Students in local or standard container labs can read, delete, or modify test files to fake a passing grade (PRD §8.5). | Critical |
+| **No protection against runaway code on shared servers** | An accidental infinite loop or fork bomb in one student's code degrades or crashes the lab server for the entire class (PRD §8.6). | Critical |
+| **Flat, non-spatial interfaces** | Zero sense of "being at work"; students cannot see who is working where or naturally huddle around a teammate's screen. | High |
+| **Punitive binary grading ("PASS / FAIL")** | Teams that correctly diagnose the faulty file/function but run out of time before completing the syntax fix receive zero credit or feedback (PRD §13.3). | High |
+| **Heavy account & PII requirements** | Requiring student email registration or SSO delays lab startup and triggers student data privacy compliance burdens (PRD §15.1, §16.6). | High |
+| **High cloud infrastructure cost** | Multi-node Kubernetes clusters and paid cloud IDE seats cost $400–$1,300+/month, making them unviable for single-college academic pilots (TSSD §7). | Medium |
+| **Lack of live teacher observability & hints** | Teachers must walk from desk to desk physically to check progress and cannot push live in-world incident updates or targeted team hints. | Medium |
+
+*Table 2.1: Limitations of Existing Classroom & Coding Sandbox Systems*
+
+## 2.3 PROPOSED SYSTEM: SIMOFFICE
+
+**SimOffice** replaces disconnected worksheets and isolated coding boxes with a persistent, shared 3D virtual software company (PRD v3.1 §3, §7). Every laboratory session is structured as a live **incident run**:
+
+1. **Arrival at the Headquarters Exterior (`SCR-00`):** When a teacher or student opens SimOffice in a standard web browser, the Babylon.js engine immediately renders the architectural 3D exterior of the SimOffice headquarters. Authentication occurs through a diegetic digital access panel integrated into the building entrance—eliminating conventional flat login pages (PRD §10.4, UIUXD `SCR-00`).
+2. **Threshold Transition & Lobby Onboarding:** Upon valid login (teacher) or join-code entry (student), the entrance doors animate open and a 2-second camera fly-through carries the user across the threshold into the Lobby, where the visual style shifts to SimOffice's warm, playful, *Fall Guys*-inspired aesthetic. First-time students customize their character (`SCR-07`) and traverse a short onboarding corridor (`SCR-08`) that teaches movement and interaction without precision-timing barriers.
+3. **Symptom-Only Mission Briefing (`SCR-10`):** Inside the department room (the **Backend Engine Room** in Phase 0), an in-world notice board displays the incident's user-visible symptom—never the underlying cause.
+4. **Seated In-World Workstation Debugging (`SCR-14`):** Students walk up to an empty desk and sit down. Their avatar visibly occupies the seat (`SCR-11`), lighting up the monitor for all teammates to see. A position-anchored `[Hybrid]` code editor opens over the 3D monitor, exposing the team's isolated codebase slice (`/workspace`), auto-saving edits (`PUT /files/{path}`), and allowing informal checks (`run-check`).
+5. **Tamper-Resistant Verification (`SCR-21`):** When the team submits their fix (`submit-verification`), `app-server` snapshots `/workspace` and injects the author-controlled verification harness into a separate, ephemeral sandbox context (`runsc` or E2B). Results stream back per check (`full_fix` and `diagnostic`), triggering in-world confirmation chimes and visual prop state changes.
+6. **Non-Punitive Debrief & "Reveal Fix" (`SCR-19` / `SCR-20`):** When the session ends, both teacher and students receive structured debrief cards showing diagnostic progress, individual contribution metrics (inferred from code edits, verification triggers, chat, and pings), and an optional teacher-triggered **"Reveal Fix"** teaching moment for unresolved teams.
+
+## 2.4 TARGET USERS AND PERSONA ANALYSIS
+
+SimOffice is designed around four explicitly defined personas (PRD v3.1 §6, UIUXD v2.1 §4):
+
+* **Persona 1 — "Mentor Priya" (Teacher / Instructor):** Teaches software engineering, secure coding, or systems courses. Uses the `[Shell]` workflow (`SCR-01` to `SCR-05`, `SCR-15` to `SCR-19`) to create classes, launch incident sessions, monitor live roster/check status, push hints or customer alerts, and export post-session debriefs.
+* **Persona 2 — "Student Rahul" (Team Contributor):** Joins via a 6-character code (`SCR-06`), retains a persistent class-scoped identity via a lightweight passcode (`WOLF-42`), customizes an avatar (`SCR-07`), collaborates via chat (`SCR-12`) and location pings (`SCR-13`), edits code at a workstation (`SCR-14`), and receives a personal contribution debrief (`SCR-20`).
+* **Persona 3 — "Content Author Dev" (Curriculum Designer):** Distinct from the classroom teacher (PRD §11.4). Authors self-contained scenario packages (`content-library/`) consisting of a `fix-baseline`, broken `issue-variants`, protected `verification` harnesses, and `manifest.yaml` metadata, validated through a two-part correctness and pedagogical review gate.
+* **Persona 4 — "IT / Procurement Admin Alex" (Institutional Approver):** Evaluates SimOffice against campus hardware baselines (Chromebook/lab PC compatibility), network firewall rules (single `:443` port exposure), and student data privacy/retention compliance (PRD §15.5, §16.6).
+
+## 2.5 COMPARISON: EXISTING TOOLS VS. SIMOFFICE
+
+| Feature / Dimension | Traditional LMS / Local Lab | Competitive Coding / Cloud IDE | Proposed SimOffice System |
+| :--- | :--- | :--- | :--- |
+| **Spatial & Social Presence** | None (flat documents) | None (2D text panes) | Full 3D building, physics avatars, visible desk occupancy |
+| **Team Collaboration Mode** | Manual / Offline | Single-player or screen-share | Room-per-team multiplayer sync, in-world chat & location pings |
+| **Problem Framing** | Direct file/line instructions | Algorithmic specification | Symptom-only in-world customer/monitoring reports |
+| **Verification Tamper Resistance** | None (students can edit local tests) | Server-side, but single-file only | **Injection-Over-Mount** into separate ephemeral container/VM |
+| **Resource Starvation Protection** | Crashes local/shared machine | Paid per-seat cloud quotas | Enforced **1 vCPU / 512 MB / 30s** per-environment ceilings |
+| **Failure / Timeout Handling** | Binary 0% / Fail | Binary "Wrong Answer / TLE" | **Non-punitive debrief** (`diagnostic` vs. `full_fix`) + **Reveal Fix** |
+| **Student Identity & Privacy** | Full PII / Email required | Full account registration | Zero-PII class-scoped `RosterEntry` + passcode (`WOLF-42`) |
+| **Pilot Infrastructure Cost** | $0 (manual grading burden) | $400–$1,300/month at scale | **$0–$10/month** (Single VPS / Campus Host via Docker Compose) |
+
+*Table 2.2: Feature Comparison: Existing Classroom Tools vs. SimOffice*
+
+## 2.6 PHASED ROLLOUT & PHASE 0 EXIT CRITERIA
+
+A major contribution of the SimOffice PRD (v3.1 §5.2) is establishing quantitative **Phase 0 Exit Criteria** that must be cleared during a real classroom pilot before Phase 1 multi-department world-building is funded:
+
+| Criterion # | Dimension | Measurable Target / Bar to Clear | Instrumentation Source |
+| :--- | :--- | :--- | :--- |
+| **Criterion 1** | **Pedagogical Completion** | **≥ 60% of teams** reach a full (`full_fix`) or partial (`diagnostic`) verified fix within the session time limit. | `verification_runs` & `team_debrief_summary` view |
+| **Criterion 2** | **Technical Stability** | **< 10% of sessions** experience any session-breaking desync, environment-provisioning failure, or verification outage. | Sentry error logs & `environment_instances.status` |
+| **Criterion 3** | **Device Baseline Validity** | **100% of pilot lab fleets** meet the recorded targets: **< 10s join time**, **≥ 30 FPS floor**, and **single-digit-second check latency** (PRD §16.2). | Pre-pilot hardware test report |
+| **Criterion 4** | **Teacher Sentiment** | Net-positive post-session rating and **≥ 1 pilot teacher** willing to run a second session. | Post-session debrief survey |
+| **Criterion 5** | **Student Engagement** | Active engagement sustained for **≥ 70% of configured session duration** via movement, chat, and emote density. | `contribution_events` timestamp density |
+
+*Table 2.3: Phase 0 Quantitative Exit Criteria & Go/No-Go Thresholds (PRD v3.1 §5.2, §16.2, §17)*
+
+## 2.7 NON-FUNCTIONAL & COMPLIANCE REQUIREMENTS
+
+### 2.7.1 Difficulty & Injected-Issue Taxonomy
+SimOffice categorizes defects across three difficulty tiers and four conceptual categories (PRD §14):
+
+| Difficulty Tier | Architectural Scope | Example Injected-Issue Categories | Target Phase |
+| :--- | :--- | :--- | :--- |
+| **Beginner** | Single, isolated issue confined to one department; symptom closely matches cause. | Simple logic bug (`logic_bug`), obvious misconfiguration, missing input validation. | **Phase 0 MVP** |
+| **Intermediate** | Spans two departments or requires cross-team communication to trace. | Common web security vulnerabilities (injection, broken access control, exposed secrets). | Phase 1 / Phase 2 |
+| **Advanced** | Multiple layered issues (`issue_ordinal`), misleading symptoms, full-team coordination. | Chained vulnerabilities, planted malicious scripts (requires legal review), infra + app bugs. | Phase 2 / Phase 3 |
+
+*Table 2.4: Injected-Issue Difficulty & Category Taxonomy (PRD v3.1 §14)*
+
+### 2.7.2 Non-Functional Requirements (NFRs)
+* **Presentation Model (`PRD §16.1`):** 3D-first, browser-based, with no browser-style modal popups inside the 3D world.
+* **Device Baseline (`PRD §16.2`):** Must run on standard school laptops and Chromebooks at a minimum resolution of **1280×720** (UIUXD §5.1), recording actual metrics for join time (<10s), frame rate (30 FPS floor / 60 FPS target), and check-run response time.
+* **Concurrency (`PRD §16.3`):** Full architectural target supports up to 50 concurrent sessions, 20 teams/session, and 6 students/team; the Phase 0 Pilot Edition is tuned for a single supervised class on one VPS (TSSD §5.1).
+* **Privacy & Compliance Gate (`PRD §16.6`, `Compliance Spec v1.0`):** Because classroom software may involve minors, confirming the pilot cohort's actual age range is a **blocking pre-pilot gate**. For adult diploma/degree cohorts (18+), institutional-level consent applies; if minors participate, full COPPA/FERPA/GDPR-K compliance review is mandatory prior to collecting real student data. Furthermore, all AI prompts used in content generation strictly forbid PII extraction (`SimOffice_Compliance_Spec_v1_0.md` §2).
+
+---
+
+# CHAPTER 3 — SYSTEM ARCHITECTURE & SECURITY DESIGN
+
+## 3.1 ARCHITECTURAL GOALS AND CONSTRAINTS
+
+The SimOffice System Architecture (SAD v1.3/v1.4) translates the requirements of PRD v3.1/v3.2 and the technology selections of TSSD v2.1 into a cohesive, security-hardened topology. Six primary architectural constraints govern the design (SAD §2):
+
+1. **Coarse-Grained Single-Host Pilot Deployment:** To achieve the $0–$10/month pilot cost target, the REST API and the Colyseus real-time multiplayer server execute inside a **single Node.js process (`app-server`)** orchestrated via Docker Compose rather than a multi-cluster microservice sprawl.
+2. **Strict Kernel-Level Sandbox Isolation:** Every team's code execution environment is isolated at the OS/kernel boundary behind a provider-agnostic `SandboxProvider` interface.
+3. **"Injection-Over-Mount" Verification Trust Zone:** The verification harness is never mounted inside the student-writable `/workspace` directory; it is injected transiently into a separate execution context at verification time.
+4. **Per-Environment Resource Ceilings:** Every provisioned sandbox enforces explicit CPU, memory, and wall-clock limits (`ResourceLimits`) so runaway student code cannot starve PostgreSQL, Valkey, or other teams on the shared VPS.
+5. **Two-Tier Identity Separation:** Credentialed `Account` rows for teachers and credential-free, class-scoped `RosterEntry` rows for students are kept structurally separate.
+6. **Unconditional Session Teardown:** Environment teardown (`torn_down`) is a mandatory terminal step across all session-end paths (normal end, early teacher end, time limit, or abandoned timeout).
+
+## 3.2 HIGH-LEVEL COMPONENT TOPOLOGY
+
+Figure 3.1 illustrates the high-level component architecture of the SimOffice Pilot Edition (SAD v1.3 §3):
+
+```
++-----------------------------------------------------------------------------------+
+|                                 CLIENT — BROWSER                                  |
+|  +-----------------------------------------------------------------------------+  |
+|  | [3D/Entry] Babylon.js Building Exterior + Access Panel Overlay (SCR-00)     |  |
+|  | [Shell]    React 19 App Shell (Class/Roster, Setup, Live Dashboard, Debrief)|  |
+|  | [3D/HUD]   Babylon.js 8.x Game World (Avatars, Physics, Prompts, Chat/Ping) |  |
+|  | [Hybrid]   In-World Workstation Code Editor Overlay (CodeMirror, SCR-14)    |  |
+|  +-----------------------------------------------------------------------------+  |
++-----------------------------------------|-----------------------------------------+
+                                          | HTTPS / WSS (Port :443 Only)
+                                          v
++-----------------------------------------------------------------------------------+
+|                   SINGLE VPS / CAMPUS HOST — DOCKER COMPOSE                       |
+|                                                                                   |
+|  +-----------------------------------------------------------------------------+  |
+|  | nginx (Reverse Proxy, TLS Termination, Static React/Babylon Asset Delivery) |  |
+|  +--------------------------------------|--------------------------------------+  |
+|                                         | HTTP / WS Proxy (:3000 internal)        |
+|                                         v                                         |
+|  +-----------------------------------------------------------------------------+  |
+|  | app-server (Single Node.js 24 LTS Process: NestJS REST API + Colyseus 0.17) |  |
+|  +------|-------------------------------|-------------------------------|------+  |
+|         | :5432                         | :6379                         |         |
+|         v                               v                               |         |
+|  +------------------+          +------------------+                     |         |
+|  | PostgreSQL 17.x  |          |   Valkey 8.x     |                     |         |
+|  | (System of       |          | (Colyseus PubSub |                     |         |
+|  |  Record / Views) |          |  & Rate Limits)  |                     |         |
+|  +------------------+          +------------------+                     |         |
+|                                                                         |         |
+|         +---------------------------------------------------------------+         |
+|         | SandboxProvider Interface (E2BProvider OR GVisorProvider)               |
+|         +-------------------------------+-------------------------------+         |
+|                                         |                                         |
+|                                         v (Internal Docker Network API)           |
+|                          +------------------------------+                         |
+|                          |    sandbox-orchestrator      |                         |
+|                          | (Narrow-Privilege Service;   |                         |
+|                          |  ONLY holder of docker.sock) |                         |
+|                          +--------------+---------------+                         |
+|                                         | runsc runtime (--cpus=1 --memory=512m)  |
+|                                         v                                         |
+|                          +------------------------------+                         |
+|                          | Team Environment Containers  |                         |
+|                          |  + Ephemeral Verify Context  |                         |
+|                          +------------------------------+                         |
++-----------------------------------------------------------------------------------+
+                                          | (Alternative External Path)
+                                          v
+                           +------------------------------+
+                           |   E2B Firecracker Sandbox    |
+                           |     API (Free/Hobby Tier)    |
+                           +------------------------------+
+```
+*Figure 3.1: SimOffice High-Level Component Topology (SAD v1.3 §3, §12)*
+
+### Component Responsibility Matrix
+
+| Component | Primary Responsibilities | Explicit Non-Responsibilities (What It Does *Not* Do) |
+| :--- | :--- | :--- |
+| **nginx** | TLS termination (`:443`), reverse-proxying HTTP/WS traffic to `app-server`, serving built React/Babylon.js static bundles and 3D assets. | Business logic, authentication validation, or session state storage. |
+| **app-server (NestJS side)** | Teacher/student auth, class/roster CRUD, session configuration, content-library queries, verification orchestration, dashboard/debrief reads, retention cron jobs. | Direct Docker socket manipulation or client-side rendering. |
+| **app-server (Colyseus side)** | Room-per-team real-time state (`TeamRoomState`), avatar movement sync, deterministic desk-conflict resolution, chat/ping broadcasts, disconnect/reconnect handling. | Long-term relational persistence (delegates to PostgreSQL) or running untrusted student code. |
+| **SandboxProvider (Interface)** | Unified TypeScript contract (`provision`, `readFile`, `writeFile`, `runCheck`, `runVerification`, `teardown`) implemented by `E2BProvider` and `GVisorProvider`. | Deciding *when* to provision or verify (orchestrated strictly by `app-server`). |
+| **sandbox-orchestrator** | Narrow-privilege internal service (gVisor path); the **only** container with `/var/run/docker.sock` access to launch `runsc`-isolated containers with resource flags. | Application business logic or external network exposure. |
+| **PostgreSQL 17.x** | Relational system of record for accounts, classes, rosters, sessions, teams, environments, checks, runs, contribution events, and debrief SQL views. | High-frequency real-time position fan-out or storing student workspace files. |
+| **Valkey 8.x** | In-memory Colyseus presence/pub-sub backing and sliding-window rate-limiting counters for login and session-join endpoints. | Durable storage of any record that cannot be reconstructed. |
+
+*Table 3.1: Component Responsibility Matrix (SAD v1.3 §4)*
+
+## 3.3 TECHNOLOGY STACK SELECTION (PILOT EDITION)
+
+In TSSD v2.1 (Pilot Edition), the commercial multi-institution stack (TSSD v1.0) was systematically re-evaluated to eliminate managed-service spend while keeping every security and pedagogical guarantee intact:
+
+| Category | Production Stack (TSSD v1.0) | Pilot Edition Stack (TSSD v2.1) | Engineering Rationale for Pilot Selection |
+| :--- | :--- | :--- | :--- |
+| **3D Client Engine** | Babylon.js 8.x | **Babylon.js 8.x** (Unchanged) | Apache-2.0, free, built-in physics/character controller, Chromebook-viable. |
+| **Client App Shell** | React 19 + TS + Vite | **React 19 + TypeScript + Vite** (Unchanged) | Fast HMR, strong typing, clean DOM overlay composition over WebGL canvas. |
+| **Multiplayer Sync** | Colyseus 0.17.x | **Colyseus 0.17.x** (Unchanged) | MIT-licensed, native room-per-team schema sync and `onLeave` reconnection. |
+| **Backend Framework** | Node.js 24 LTS + NestJS | **Node.js 24 LTS + NestJS** (Unchanged) | Modular dependency injection, Guards (`TeacherGuard`, `RosterGuard`), shares HTTP server with Colyseus. |
+| **Relational Database** | Managed Cloud SQL (Postgres) | **Self-Hosted PostgreSQL 17.x** (Docker) | Identical engine, schema, and ACID guarantees at $0 hosting cost; backed up via `pg_dump`. |
+| **In-Memory Cache** | Managed Memorystore (Valkey) | **Self-Hosted Valkey 8.x** (Docker) | Open-source Redis-compatible engine for rate limiting and Colyseus presence at $0 cost. |
+| **Code Sandbox** | Managed E2B Paid → GKE gVisor | **E2B Free Tier OR Self-Hosted gVisor (`runsc`)** | Preserves Firecracker/gVisor kernel isolation and resource limits (`--cpus`, `--memory`) at $0 cost. |
+| **Authentication** | Auth0 (Multi-District SSO) | **Self-Rolled HS256 JWT + Bcrypt / Passcodes** | Single-college pilot has no multi-district SSO friction; eliminates IdP cost and complexity. |
+| **Compute & Orchestration** | GKE (Multi-Node Kubernetes) | **Single VPS (≥4GB RAM) / Campus PC + Docker Compose** | One supervised class needs no multi-node scheduling; same container images migrate to K8s later. |
+| **Asset Storage & Proxy** | GCS + Cloudflare CDN | **Local Filesystem + Nginx Container** | Campus LAN provides low latency directly from the host without edge CDN overhead. |
+| **Observability** | Grafana / Prometheus / Datadog | **Sentry (Free Tier) + Manual Supervision** | Instructor/operator is physically present during pilot sessions; Sentry captures tagged exceptions. |
+| **Testing Suite** | Vitest, Playwright, k6, BrowserStack | **Vitest, Playwright, k6 + Real Campus Lab Hardware** | Testing directly on physical college lab PCs/Chromebooks provides superior ground truth at $0. |
+
+*Table 3.2: Technology Stack Selection: Production (v1.0) vs. Pilot Edition (v2.1) (TSSD v2.1 §2, §11)*
+
+### Pilot Cost Envelope
+By removing managed cloud markups while retaining kernel-isolated sandboxing, the monthly operational cost is reduced by >100x (from $400–$1,300/month in TSSD v1.0 to **$0–$10/month**):
+
+| Line Item | Pilot Choice | Monthly Cost |
+| :--- | :--- | :--- |
+| Compute Hosting | Hetzner / DigitalOcean ~4GB RAM VPS (or existing college lab machine) | $0 – $10 |
+| Database & Cache | Self-hosted PostgreSQL 17.x + Valkey 8.x (Docker volumes) | $0 |
+| Code Execution Sandbox | Self-hosted gVisor (`runsc`) or E2B Free/Hobby Tier | $0 |
+| Auth, Storage, CI/CD, Monitoring | Self-rolled JWT, Nginx local storage, GitHub Actions Free, Sentry Free | $0 |
+| **Total Monthly Pilot Cost** | | **$0 – $10 / month** |
+
+*Table 3.3: Pilot Infrastructure Cost Breakdown (TSSD v2.1 §7)*
+
+## 3.4 THREE-LAYER FRONTEND ARCHITECTURE (`[3D/ENTRY]`, `[SHELL]`, `[3D/HUD]`, `[HYBRID]`)
+
+As refined in SAD v1.4 (§12) and UIUXD v2.2 (§5), the client avoids creating and destroying multiple WebGL contexts by operating a **single Babylon.js engine lifecycle** from initial page load through session end, organized into three architectural layers plus one hybrid composition:
+
+1. **`[3D/Entry]` Layer (Pre-Auth Building Exterior):** Rendered immediately on page load (`initEntryScene()`). Displays the modern architectural SimOffice headquarters exterior with ambient lighting. The React App Shell floats the diegetic access panel card (`SCR-00`) over the canvas (`/teacher` renders staff login `SCR-01`; `/` renders student join `SCR-06`).
+2. **`[Shell]` Layer (React 19 2D App Shell):** Handles teacher workflows outside the 3D simulation (Class List `SCR-02`, Roster `SCR-03`, Session Setup `SCR-04`, Lobby Control `SCR-05`, Live Dashboard `SCR-15`, Teacher Debrief `SCR-19`) and the student's post-session personal debrief (`SCR-20`).
+3. **`[3D/HUD]` Layer (Babylon.js In-World Simulation):** When authentication succeeds and the 2-second entry camera fly-through crosses the building threshold, the *existing* Babylon.js engine instance is promoted in-place via `initGameWorld()`. It renders the stylized interior, physics-driven avatars, and transparent-background HUD overlays (Contextual Prompts `SCR-09`, Notice Board `SCR-10`, Desk Indicators `SCR-11`, Chat `SCR-12`, Pings `SCR-13`).
+4. **`[Hybrid]` Layer (Workstation Code Editor Overlay — `SCR-14`):** To satisfy PRD §8.2 and §16.1 ("no popup-style UI"), sitting at a desk settles the 3D camera into an over-the-shoulder view of the in-world monitor and anchors a real DOM CodeMirror editor directly to the monitor's frame. Teammates remain visible walking past in peripheral 3D view, and standing up immediately dismisses the overlay while auto-saving file state.
+
+All pointer/mouse interactions are routed through a **single Input-Mapping Abstraction Layer** (SAD §12) that binds every action (`move`, `jump`, `sit`, `interact`, `emote`) to keyboard equivalents, making PRD §9.6's keyboard-only accessibility rule enforceable during code review.
+
+## 3.5 UNIFIED BACKEND & REAL-TIME MULTIPLAYER ARCHITECTURE
+
+The backend (`app-server`) runs NestJS and Colyseus inside a single Node.js process attached to one HTTP/WebSocket server. Figure 3.2 depicts the Docker Compose network isolation topology (SAD §5, SSD §5.1):
+
+```
++-------------------------------------------------------------------------+
+|                             CAMPUS NETWORK                              |
++-----------------------------------|-------------------------------------+
+                                    | :443 (HTTPS / WSS — TLS Terminated)
+                                    v
++-------------------------------------------------------------------------+
+|               DOCKER INTERNAL NETWORK (No External Ports)               |
+|                                                                         |
+|   +-----------+     :3000      +---------------+     :5432   +--------+ |
+|   |   nginx   | -------------> |  app-server   | ----------> |postgres| |
+|   +-----------+                | (NestJS +     |             +--------+ |
+|                                |  Colyseus)    |     :6379   +--------+ |
+|                                +-------+-------+ ----------> | valkey | |
+|                                        |                     +--------+ |
+|                                        | Internal REST API              |
+|                                        v                                |
+|                             +----------------------+                    |
+|                             | sandbox-orchestrator |                    |
+|                             +----------+-----------+                    |
+|                                        | /var/run/docker.sock           |
+|                                        v (runsc runtime)                |
+|                             +----------------------+                    |
+|                             |  [Team Environment   |                    |
+|                             |     Containers]      |                    |
+|                             +----------------------+                    |
++-------------------------------------------------------------------------+
+```
+*Figure 3.2: Deployment & Network Isolation Topology (SAD v1.3 §5, SSD v1.0 §5.1)*
+
+### Fault Isolation in a Single-Process Server (SAD §14)
+Because NestJS and Colyseus share one Node.js event loop, an unhandled exception inside a Colyseus room callback could theoretically crash the REST API. SimOffice prevents this via a **three-layer resilience defense** (SAD v1.3 §14):
+1. **Per-Callback Try/Catch Wrapping:** Every room lifecycle method (`onJoin`, `onMessage`, `onLeave`, `onDispose`) is individually wrapped in a `try/catch` block that logs exceptions to Sentry (tagged with `session_id` and `team_id`) and gracefully degrades only that specific room.
+2. **Top-Level Process Handlers:** `process.on('uncaughtException')` and `process.on('unhandledRejection')` flush error logs and trigger a clean, controlled exit rather than leaving the server in an undefined state.
+3. **Process Supervision & Native Reconnection:** Container restart policies (`restart: unless-stopped` / `pm2`) immediately restart `app-server`, while Colyseus 0.17's native client reconnection automatically restores students to their room and seated workstation state.
+
+## 3.6 TRUST-ZONE & SANDBOX ARCHITECTURE ("INJECTION-OVER-MOUNT")
+
+The most safety-critical engineering mechanism in SimOffice is the **Trust-Zone Sandbox Architecture** (PRD §8.5, SAD §7, SSD §3). In a classroom setting, students will predictably attempt to pass an exercise by deleting the test file, modifying assertions, or inspecting the test script to hardcode expected outputs.
+
+### 3.6.1 Three-Zone Trust Model
+
+```
++-------------------------------------------------------------------------+
+| [RED] UNTRUSTED ZONE                                                    |
+|   • Student's Browser Client (React + Babylon.js)                       |
+|   • Student-Authored Code inside /workspace                             |
++-----------------------------------|-------------------------------------+
+                                    | HTTPS/WSS (JWT Guards & Validation)
+                                    v
++-------------------------------------------------------------------------+
+| [YELLOW] SEMI-TRUSTED ZONE                                              |
+|   • app-server (NestJS API + Colyseus Multiplayer Rooms)                |
++-----------------------------------|-------------------------------------+
+                                    | SandboxProvider Interface / SQL / TCP
+                                    v
++-------------------------------------------------------------------------+
+| [GREEN] TRUSTED ZONE                                                    |
+|   • Verification Harness (Author-Controlled in content-library/)        |
+|   • sandbox-orchestrator (Exclusive holder of docker.sock)              |
+|   • Ephemeral Verification Execution Context (Fresh Container/Session)  |
+|   • PostgreSQL 17.x & Valkey 8.x                                        |
++-------------------------------------------------------------------------+
+  [!] Student Code has NO NETWORK OR FILESYSTEM PATH to Harness, DB, or Valkey.
+```
+*Figure 3.3: Trust-Zone Architecture & Boundary Map (SSD v1.0 §2.3)*
+
+### 3.6.2 The "Injection-Over-Mount" Principle
+Rather than placing the verification test suite inside `/workspace` with read-only permissions (which a root escalation or container misconfiguration could bypass), SimOffice enforces **Injection-Over-Mount** (SAD §7.2, SSD §3.1):
+* The verification harness **never exists** in any path resolvable by the student's `readFile` or `writeFile` API calls.
+* When a student triggers `POST /teams/{teamId}/workstation/submit-verification`, `app-server` executes `runVerification(env, harnessRef)` using the 6-step flow shown in Figure 3.4:
+
+```
++-------------------------------------------------------------------------+
+|                runVerification(env, harnessRef) FLOW                    |
++-------------------------------------------------------------------------+
+|  1. Snapshot the student's current /workspace filesystem from `env`.    |
+|  2. Provision a brand-new, separate isolation context                   |
+|     (a second E2B sandbox session OR a second `runsc` container).       |
+|  3. Inject the point-in-time /workspace snapshot + the protected        |
+|     author verification harness (`harnessRef`) into the new context.    |
+|  4. Execute the harness under a strict 30-second wall-clock timeout     |
+|     (`Promise.race`), capturing pass / fail / resource_limit_exceeded.  |
+|  5. Destroy the ephemeral verification context unconditionally          |
+|     (`try / finally`).                                                  |
+|  6. Write the authoritative `VerificationRun` row to PostgreSQL and     |
+|     broadcast `verificationResult` to the Colyseus room.                |
++-------------------------------------------------------------------------+
+```
+*Figure 3.4: "Injection-Over-Mount" Ephemeral Verification Execution Flow (SAD §7.2, SSD §3.4)*
+
+### 3.6.3 Concrete Provider Implementations
+
+| Architectural Aspect | `E2BProvider` (Cloud MicroVM Path) | `GVisorProvider` (Self-Hosted Campus/VPS Path) |
+| :--- | :--- | :--- |
+| **Student `/workspace`** | E2B Firecracker microVM filesystem via E2B SDK. | Bind-mounted volume inside a `runsc`-runtime Docker container. |
+| **Ephemeral Verification Context** | A **second, separate E2B sandbox session** (never a scoped `exec` in the student's session, preventing shared filesystem handles). | A **second, short-lived `runsc` container** launched by `sandbox-orchestrator` mounting a read-only snapshot + injected harness. |
+| **Kernel Isolation Mechanism** | AWS Firecracker microVM hardware virtualization. | Google gVisor (`runsc`) user-space application kernel intercepting syscalls. |
+| **Resource Ceiling Enforcement** | E2B SDK per-sandbox vCPU/RAM config + `app-server` 30s timeout. | Docker `--cpus=1 --memory=512m` flags at container create + 30s timeout. |
+
+*Table 3.4: Concrete Sandbox Implementations: `E2BProvider` vs. `GVisorProvider` (SSD v1.0 §3.3)*
+
+## 3.7 THREAT MODEL, RESOURCE CEILINGS & NETWORK ISOLATION
+
+### 3.7.1 Threat Actors and Defenses (SSD §2.1, §3.5)
+
+| Threat Actor / Vector | Capability & Motivation | SimOffice Architectural Defense |
+| :--- | :--- | :--- |
+| **Curious Student (Tampering)** | Attempts `../../` path traversal, file deletion, or reading the grading script to fake a pass. | Path normalization + **Injection-Over-Mount**: harness does not exist in `/workspace`. Client-reported passes are ignored; only server-computed DB rows count. |
+| **Mischievous Student / Buggy Code (DoS)** | Writes fork bombs (`:(){ :\|:& };:`), `while(true)` loops, or massive memory allocations. | **Resource Ceilings** (1 vCPU, 512 MB RAM, 30s check timeout) + `runsc`/Firecracker isolation. Returns `RESOURCE_LIMIT_EXCEEDED` without affecting host or other teams. |
+| **Cross-Team Snooping** | Uses valid Student Team A JWT to query Team B's files or join Team B's WebSocket room. | `RosterGuard` validates JWT `teamId` claim against `{teamId}` route/room parameter (`403 FORBIDDEN`). |
+| **Race Condition During Grading** | Modifies code mid-verification to exploit timing gaps. | Verification runs against an immutable **point-in-time snapshot** of `/workspace`. |
+| **External Brute-Force Attacker** | Guesses teacher passwords or 6-character session join codes. | Valkey-backed sliding-window rate limiting (`429 RATE_LIMITED`: 5 req/min on login, 10 req/min on join). |
+
+*Table 3.5: Threat Actors, Capabilities, and Architectural Defenses (SSD v1.0 §2, §3.5, API Spec §2.6)*
+
+### 3.7.2 Enforced Resource Ceilings (PRD §8.6, SAD §7.4, SSD §4)
+
+| Resource Parameter | Phase 0 Pilot Default | Enforcement Mechanism & Breach Behavior |
+| :--- | :--- | :--- |
+| **CPU Allocation** | **1 vCPU** (`cpuCores: 1`) | Enforced via `ResourceLimits` at `provision()` (`--cpus=1`). Throttles runaway compute loops. |
+| **Memory Allocation** | **512 MB** (`memoryMb: 512`) | Enforced via `ResourceLimits` at `provision()` (`--memory=512m`). OOM-kills excessive allocations inside the container only. |
+| **Per-Check Wall-Clock Timeout** | **30,000 ms (30 seconds)** | Enforced via `Promise.race` wrapper on `runCheck` and `runVerification`. Terminates hung execution and returns `resource_limit_exceeded` (or HTTP `422` on informal check) + `environmentError` broadcast. |
+| **Environment Lifetime** | **Session Duration** (or 20m idle) | Unconditionally destroyed (`torn_down`) on session end or 20-minute abandoned-session cron job. |
+
+*Table 3.6: Enforced Per-Environment Resource Ceilings (SSD v1.0 §4.1)*
+
+## 3.8 DATABASE ARCHITECTURE & ENTITY-RELATIONSHIP DESIGN
+
+SimOffice uses **PostgreSQL 17.x** with 13 core tables and 2 reporting views (SAD v1.3 §6.1, API Spec v1.1). Figure 3.5 illustrates the relational structure:
+
+```
++-------------------+       1:N       +-------------------+
+|     ACCOUNTS      | --------------> |      CLASSES      |
+| (id, email,       |                 | (id, teacher_id,  |
+|  password_hash,   |                 |  name, term_label,|
+|  deactivated_at)  |                 |  archived_at)     |
++-------------------+                 +---------+---------+
+                                                |
+                      +-------------------------+-------------------------+
+                      | 1:N                                               | 1:N
+                      v                                                   v
+        +---------------------------+                       +---------------------------+
+        |      ROSTER_ENTRIES       |                       |         SESSIONS          |
+        | (id, class_id,            |                       | (id, class_id,            |
+        |  display_name,            |                       |  scenario_variant_id,     |
+        |  roster_passcode_hash,    |                       |  join_code, status,       |
+        |  appearance JSONB,        |                       |  end_reason, max_roster)  |
+        |  is_anonymized)           |                       +-------------+-------------+
+        +-------------+-------------+                                     |
+                      |                                                   | 1:N
+                      | 1:N           +-------------------+               v
+                      +-------------> | TEAM_MEMBERSHIPS  | <-------+   +---------------+
+                      |               | (team_id,         |         |   |     TEAMS     |
+                      |               |  roster_entry_id) |         +---| (id,          |
+                      |               +-------------------+             |  session_id,  |
+                      |                                                 |  dept_id,     |
+                      | 1:N           +-------------------+      1:1    |  outcome_state|
+                      |               |   ENVIRONMENT_    | <-----------+  fix_revealed)|
+                      |               |    INSTANCES      |             +-------+-------+
+                      |               | (id, team_id,     |                     |
+                      |               |  provider_ref,    |                     |
+                      |               |  status, limits)  |                     |
+                      |               +-------------------+                     |
+                      |                                                         |
+                      | 1:N           +-------------------+      1:N            |
+                      +-------------> | VERIFICATION_RUNS | <-------------------+
+                      |               | (id, team_id,     |                     |
+                      |               |  check_id,        |                     |
+                      |               |  triggered_by_id, |                     |
+                      |               |  result, details) |                     |
+                      |               +---------+---------+                     |
+                      |                         ^                               |
+                      | 1:N                     | 1:N                           | 1:N
+                      v               +---------+---------+                     v
+        +---------------------------+ |VERIFICATION_CHECKS|       +---------------------------+
+        |    CONTRIBUTION_EVENTS    | | (id, variant_id,  |       |      SCENARIO_VARIANTS    |
+        | (id, session_id, team_id, | |  check_type,      | ----> | (id, scenario_id,         |
+        |  roster_entry_id,         | |  harness_ref)     |  N:1  |  difficulty, category,    |
+        |  event_type, metadata)    | +-------------------+       |  briefing_text, repo_ref) |
+        +---------------------------+                             +-------------+-------------+
+                                                                                | N:1
+                                                                                v
+                                      +-------------------+       +---------------------------+
+                                      |    DEPARTMENTS    | <---> |         SCENARIOS         |
+                                      | (id, code, name)  |  M:N  | (id, title, domain,       |
+                                      +-------------------+       |  departmental_shape)      |
+                                                                  +---------------------------+
+```
+*Figure 3.5: SimOffice Entity-Relationship Diagram (SAD v1.3 §6.1, API Spec v1.1)*
+
+### Key Data-Modeling Decisions (SAD §6.2)
+1. **Persistent Class-Scoped `ROSTER_ENTRIES`:** Unlike naive designs that create a new student row per session, `roster_entries` is scoped to `class_id` and authenticated via `roster_passcode_hash` (`WOLF-42`). This allows `appearance` (JSONB cosmetics) and multi-session history to persist across an entire semester without collecting student emails.
+2. **Separation of `SCENARIOS` and `SCENARIO_VARIANTS`:** One base project (`scenarios`) supports multiple planted defects (`scenario_variants`). Before creating a session, `app-server` queries `sessions` by `(class_id, scenario_variant_id)` to enforce PRD §11.5.3's **"no repeat incident"** rule.
+3. **First-Class `VERIFICATION_CHECKS`:** Splitting checks into `full_fix` and `diagnostic` rows allows `verification_runs` to record partial diagnostic credit independently of whether the team solved the entire bug.
+4. **Orthogonal Session Lifecycle vs. Team Outcome:** `sessions.status` tracks infrastructure lifecycle (`created`, `provisioning`, `active`, `ended`, `debriefed`, `torn_down`) and `sessions.end_reason` records why the clock stopped (`time_limit_reached`, `teacher_ended_early`, `all_teams_resolved`, `abandoned_timeout`), while `teams.outcome_state` (`in_progress`, `resolved`, `unresolved`) tracks each team's pedagogical result independently.
+
+## 3.9 SCALABILITY SEAMS: PILOT TO MULTI-INSTITUTION PRODUCTION
+
+SimOffice's Pilot architecture is explicitly designed with **Production Seams** (SAD §17, SSD §13) so graduating to TSSD v1.0 requires infrastructure configuration changes rather than application code rewrites:
+
+| Pilot Mechanism (Phase 0) | Multi-Institution Production Evolution (TSSD v1.0) | Built-In Architectural Seam |
+| :--- | :--- | :--- |
+| Single `app-server` process (NestJS + Colyseus) | Separate horizontally-scaled API Deployment + Colyseus Deployment | Separated into distinct internal NestJS modules (`modules/rooms/` vs. REST modules). |
+| Self-hosted `sandbox-orchestrator` on single VPS | Dedicated GKE Sandbox (`runsc`) node pool | Application code calls only the `SandboxProvider` TypeScript interface. |
+| Docker Compose + Self-Hosted Postgres/Valkey | Kubernetes (GKE) + Cloud SQL + Memorystore | Identical container images, SQL DDL, and Redis/Valkey wire protocols. |
+| Self-rolled Teacher Login + `.env` secrets | Auth0 Enterprise SSO + HashiCorp Vault / GCP Secret Manager | Downstream routes only inspect validated `TeacherGuard` JWT claims. |
+
+*Table 3.7: Scalability Seams: Where Multi-Institution Production Diverges from Pilot (SAD v1.3 §17, SSD §13)*
+
+---
+
+# CHAPTER 4 — MODULES & WORKFLOW DESCRIPTION
+
+The SimOffice Phase 0 system is divided into eight cohesive functional modules across the client, server, database, and sandbox layers.
+
+## 4.1 TWO-TIER AUTHENTICATION & IDENTITY MODULE
+
+To satisfy PRD §11.1, §15.1, and §16.6 (minimal student PII), SimOffice implements two distinct authentication workflows backed by HS256-signed JWTs (SSD §6.1, §6.2):
+
+| Attribute / Claim | Teacher Identity (`TeacherGuard`) | Student Identity (`RosterGuard`) |
+| :--- | :--- | :--- |
+| **Database Entity** | `accounts` (persistent across terms) | `roster_entries` (persistent within one `class_id`) |
+| **Login Endpoint** | `POST /api/v1/auth/login` | `POST /api/v1/sessions/join` |
+| **Credentials Required** | Email + Bcrypt password hash | 6-char `joinCode` + Display Name + optional `rosterPasscode` (`WOLF-42`) |
+| **PII Stored** | Email, display name | Display name only (no email, no real name, no photo required) |
+| **JWT Claims** | `sub` (`accountId`), `role: "teacher"`, `exp` | `sub` (`rosterEntryId`), `role: "student"`, `sessionId`, `teamId`, `exp` |
+| **Rate Limit (Valkey)** | 5 requests / minute / IP | 10 requests / minute / IP |
+
+*Table 4.1: Two-Tier Identity & JWT Token Comparison (SSD v1.0 §6.1–6.2, API Spec v1.1 §2.3, §2.6)*
+
+```
+Teacher                   app-server (NestJS)              PostgreSQL                Student
+  |                                |                           |                        |
+  |--- POST /auth/login ---------->|                           |                        |
+  |    (email, password)           |--- Verify Account ------->|                        |
+  |<-- 200 OK (Teacher JWT) -------|                           |                        |
+  |                                |                           |                        |
+  |                                |<-- POST /sessions/join ---|------------------------|
+  |                                |    (joinCode, displayName, optional rosterPasscode)|
+  |                                |--- Validate Session ----->|                        |
+  |                                |--- Lookup RosterEntry --->|                        |
+  |                                |    (class_id + passcode)  |                        |
+  |                                |    [If new: check max_roster_size,                 |
+  |                                |     INSERT RosterEntry, generate WOLF-42]          |
+  |                                |--- Verify class_id match->| (409 if mismatch)      |
+  |                                |--- Upsert TeamMembership->|                        |
+  |                                |--- Return 200/201 ------->|----------------------->|
+  |                                |    (Roster JWT, rosterPasscode, appearance, wsUrl) |
+```
+*Figure 4.1: Two-Tier Authentication & Persistent Class-Scoped Roster Join Sequence (SAD v1.3 §9.3, API Spec v1.1 §3.2)*
+
+As refined in API Spec v1.1 (§3.2), the join response always returns the student's `appearance` JSONB object and echoes back `rosterPasscode`. If `appearance` is empty (`{}`), the client routes the student to Character Creation (`SCR-07`); if populated, the student bypasses character creation and enters the 3D world directly—even if they previously disconnected mid-onboarding. Additionally, `max_roster_size` is checked only for new students so a returning student reconnecting with their passcode is never locked out (`409 SESSION_ROSTER_FULL`).
+
+## 4.2 CLASS, ROSTER & PRIVACY ANONYMIZATION MODULE
+
+Teachers organize their courses into `classes` (`POST /api/v1/classes`, `GET /api/v1/classes`, `PATCH /api/v1/classes/{classId}`). Student rosters are not manually typed in advance by the teacher; instead, `roster_entries` populate reactively as students join their first session in that class (UIUXD `SCR-03`).
+
+To comply with student data deletion rights (PRD §15.5, SAD §6.3, SSD §7.2), SimOffice implements **two non-destructive anonymization mechanisms** rather than hard SQL `DELETE` statements (which would break foreign keys and corrupt teammates' shared debrief histories):
+1. **On-Request Student Deletion (`DELETE /api/v1/classes/{classId}/roster/{rosterEntryId}`):** Executes `anonymize_roster_entry()`, replacing `display_name` with `'Deleted Student'`, invalidating `roster_passcode_hash`, setting `is_anonymized = true`, and setting `roster_entry_id = NULL` on all historical `contribution_events` and `verification_runs`.
+2. **Scheduled Age-Based Retention Sweep (`anonymize_expired_contribution_events()`):** A nightly background cron job nulls `roster_entry_id` on `contribution_events` older than the configured retention window (default 180 days), preserving aggregate team statistics while stripping individual student attribution.
+
+## 4.3 SESSION LIFECYCLE & LOBBY MANAGEMENT MODULE
+
+A key architectural refinement in SAD v1.3 (§8.1, §11.1) and API Spec v1.1 (§5.1) decouples **Room Opening** from **Sandbox Provisioning**:
+* When a teacher calls `POST /api/v1/sessions`, the server immediately creates the `sessions` row (`status = 'created'`), creates the `teams` row, and **opens the Colyseus WebSocket room**. This allows students to join the lobby (`SCR-05`), roam the 3D space, chat, and customize their avatars while waiting for the class to assemble. Workstations remain locked (`409 ENVIRONMENT_NOT_READY`).
+* Only when the teacher presses **Start Session** (`POST /api/v1/sessions/{sessionId}/start`) does the server transition through `provisioning`, invoke `SandboxProvider.provision()`, post `briefingText` to the notice board, and mark workstations `active`.
+
+```
+                  Teacher configures session (POST /sessions)
+                                      |
+                                      v
+                                +-----------+
+                                |  Created  | (Team & Colyseus Room Open; Lobby Active)
+                                +-----+-----+
+                                      | Teacher starts session (POST /sessions/{id}/start)
+                                      v
+                             +-----------------+
+                             |  Provisioning   | (SandboxProvider.provision() running)
+                             +--------+--------+
+                                      | Environment instance(s) ready
+                                      v
+                                +-----------+
+                         +----> |  Active   | <----+ (Join / Leave / Reconnect / Edit / Verify)
+                         |      +-----+-----+      |
+                         +------------+------------+
+                                      |
+         +----------------------------+----------------------------+
+         | Time limit reached, teacher ends early (POST /end),     |
+         | all teams resolved, or 20-min abandoned-session timeout |
+         v                                                         |
+   +-----------+                                                   |
+   |   Ended   | (SandboxProvider.teardown() executed; rooms closed)|
+   +-----+-----+                                                   |
+         | Debrief metrics & views queried                         |
+         v                                                         |
+   +-----------+                                                   |
+   | Debriefed | (Teacher may trigger POST .../reveal-fix)         |
+   +-----+-----+                                                   |
+         | All session resources cleaned up                        |
+         v                                                         |
+   +-----------+                                                   |
+   | TornDown  | (Terminal State — 0 surviving sandbox instances)  |
+   +-----------+                                                   +
+```
+*Figure 4.2: Session Lifecycle State Machine (SAD v1.3 §10)*
+
+```
+Teacher                app-server                PostgreSQL          SandboxProvider       Colyseus Room        Student
+  |                        |                         |                      |                    |                 |
+  |-- POST /sessions ----->|                         |                      |                    |                 |
+  |                        |-- INSERT Session/Team ->|                      |                    |                 |
+  |                        |-- Open Room (Lobby) --->|----------------------|------------------->|                 |
+  |<-- 201 (joinCode) -----|                         |                      |                    |                 |
+  |                        |<-- POST /sessions/join -|----------------------|--------------------|-----------------|
+  |                        |-- Lookup/Create Roster->|                      |                    |                 |
+  |                        |-- 200/201 (Roster JWT)->|----------------------|--------------------|---------------->|
+  |                        |                         |                      |                    |<-- Connect WS --|
+  |                        |                         |                      |                    |-- Lobby State ->|
+  |-- POST /start -------->|                         |                      |                    |                 |
+  |                        |-- provision(limits) --->|--------------------->|                    |                 |
+  |                        |<-- EnvironmentRef ------|----------------------|                    |                 |
+  |                        |-- INSERT Env (ready) -->|                      |                    |                 |
+  |                        |-- UPDATE Session active>|                      |                    |                 |
+  |                        |-- Post briefingText & activate workstations -->|------------------->|---------------->|
+```
+*Figure 4.3: Session Creation, Pre-Start Lobby Roaming, and Start Provisioning Sequence (SAD v1.3 §11.1)*
+
+## 4.4 3D AVATAR, ENTRY SCENE & INTERACTIVE WORLD MODULE
+
+Once inside the 3D world, student clients synchronize state at real-time interactive rates through their team's Colyseus room (`team-${teamId}`). Table 4.2 specifies the server-authoritative room methods (API Spec v1.1 §10.3):
+
+| Room Method | Client Payload | Server-Authoritative Behavior & Persistence Side-Effect |
+| :--- | :--- | :--- |
+| `move` | `{ x, y, z, animState }` | Bounds-checked and patched into `PlayerState` (`idle`, `walk`, `jump`, `sit`, `emote`). Synced to all room peers. |
+| `sitAtDesk` | `{ deskId }` | **Deterministic First-Valid-Interaction-Wins:** If `deskId` is free and session is `active`, sets `seated = true`, `deskId = deskId`, and logs `desk_seated` to `contribution_events`. If occupied, rejects with `{ error: "DESK_OCCUPIED", nearestFreeDeskId }` so client redirects smoothly (PRD §10.2). |
+| `standUp` | `{}` | Frees `deskId`, sets `seated = false`, and logs `desk_stood`. |
+| `sendChat` | `{ channel, message }` | Appends to live `TeamRoomState.chatLog` and inserts `chat_message_sent` into `contribution_events`. |
+| `sendPing` | `{ targetDeskId }` | Broadcasts location marker (`SCR-13`) to teammates and inserts `ping_sent` into `contribution_events`. |
+| `useEmote` | `{ emoteType }` | Broadcasts character emote animation and inserts `emote_used` into `contribution_events`. |
+
+*Table 4.2: Colyseus Real-Time Room Methods & Server-Authoritative Behaviors (API Spec v1.1 §10.3)*
+
+```
+Student                     Colyseus Room (app-server)                  PostgreSQL
+  |                                     |                                   |
+  |--- [Connection Drops Unexpectedly] -x                                   |
+  |                                     |-- onLeave(consented = false)      |
+  |                                     |-- PlayerState.connected = false   |
+  |                                     |   ("Stepped Away" visual;         |
+  |                                     |    deskId is HELD, not freed)     |
+  |                                     |                                   |
+  |--- POST /sessions/join ------------>| (Re-mints short-lived Roster JWT) |
+  |--- reconnect(token) --------------->|                                   |
+  |                                     |-- PlayerState.connected = true    |
+  |<-- Resume Room & Workstation State -|   (Saved edits intact via §7.3)   |
+```
+*Figure 4.5: Late-Join, Unintentional Disconnect ("Stepped Away"), and Reconnect Sequence (SAD v1.3 §11.4, API Spec §10.5)*
+
+## 4.5 IN-WORLD WORKSTATION & CODE EXECUTION MODULE
+
+When seated at a workstation (`SCR-14`), the student interacts with their department's codebase slice via three REST endpoints scoped to their `teamId` claim (API Spec §7.1–7.4):
+* **Browse File Tree (`GET /api/v1/teams/{teamId}/workstation/files`):** Returns the directory tree inside `/workspace` (e.g., `services/payment/retry.ts`).
+* **Read & Auto-Save Code (`GET` & `PUT /api/v1/teams/{teamId}/workstation/files/{path}`):** Reads file content and debounces client edits to save checkpoints automatically without an explicit Save button (Principle P7). Every checkpoint logs a `code_edit_saved` event in `contribution_events`.
+* **Informal Check (`POST /api/v1/teams/{teamId}/workstation/run-check`):** Executes the scenario's informal test/reproduction script inside the student's sandbox under the 30-second timeout ceiling (`SandboxProvider.runCheck`). Returns `{ result: "pass" | "fail", output }` (or `422 RESOURCE_LIMIT_EXCEEDED`), allowing iterative debugging without affecting formal grading.
+
+## 4.6 TAMPER-RESISTANT VERIFICATION & GRADING MODULE
+
+When the team is ready to verify their fix, a student clicks **Submit for Verification** (`POST /api/v1/teams/{teamId}/workstation/submit-verification`). Figure 4.4 illustrates the complete trust-zone sequence (SAD v1.3 §11.2, API Spec §7.5):
+
+```
+Student          Colyseus Room          app-server (NestJS)          SandboxProvider          PostgreSQL
+  |                    |                         |                          |                     |
+  |-- PUT /files/{p} ->|------------------------>|                          |                     |
+  |                    |                         |-- writeFile(/workspace)->|                     |
+  |                    |                         |-- INSERT code_edit_saved-|-------------------->|
+  |                    |                         |                          |                     |
+  |-- POST /submit-verification ---------------->|                          |                     |
+  |                    |                         |-- SELECT Checks -------->|-------------------->|
+  |                    |                         |   (full_fix + diagnostic)|                     |
+  |                    |                         |                          |                     |
+  |                    |                         |== [LOOP EACH CHECK] ==== |                     |
+  |                    |                         |-- runVerification() ---->|                     |
+  |                    |                         |   (Snapshot /workspace + |                     |
+  |                    |                         |    Inject harnessRef in  |                     |
+  |                    |                         |    ephemeral container)  |                     |
+  |                    |                         |<-- pass/fail/limit ------|                     |
+  |                    |                         |-- INSERT VerificationRun-|-------------------->|
+  |                    |<-- broadcast(result) ---|                          |                     |
+  |<-- Chime & Prop ---|   (Streams per check!)  |                          |                     |
+  |                    |                         |== [END LOOP] =========== |                     |
+  |                    |                         |-- UPDATE Team.outcome -->|-------------------->|
+  |<-- 200 OK (runs[], outcomeState) ------------|                          |                     |
+```
+*Figure 4.4: Workstation File Edit, Informal Check, and Protected Verification Sequence (SAD v1.3 §11.2)*
+
+Crucially, results **stream per check** over the Colyseus WebSocket (`verificationResult`) as soon as each check finishes rather than blocking on the slowest check (API Spec §7.5). Only a `pass` on the `full_fix` check transitions `teams.outcome_state` to `'resolved'`; passing a `diagnostic` check records partial credit (`diagnosticChecksPassed > 0`) for the debrief screen.
+
+## 4.7 TEACHER LIVE DASHBOARD, HINTS & ANNOUNCEMENTS MODULE
+
+During an active session, the teacher monitors the class via the Live Dashboard (`SCR-15`, `GET /api/v1/sessions/{sessionId}/dashboard`). Because NestJS and Colyseus share one process, this endpoint combines PostgreSQL verification aggregates (`fullFixChecksPassed`, `diagnosticChecksPassed`, `resourceLimitExceeded`) with in-memory Colyseus `PlayerState` data (`connected`, `seated`, `deskId`) in a single zero-latency call (API Spec §8.1).
+
+From `SCR-15`, the teacher can:
+* **Send a Targeted Team Hint (`SCR-16`, `POST /api/v1/sessions/{sessionId}/teams/{teamId}/hint`):** Broadcasts an ephemeral `hintReceived` event to a struggling team without revealing it to other teams.
+* **Push a Live Incident Announcement (`SCR-17`, `POST /api/v1/sessions/{sessionId}/announcements`):** Updates the in-world Notice Board (`SCR-10`) across one or all teams with a chime and visual flash.
+* **End Session (`SCR-18`, `POST /api/v1/sessions/{sessionId}/end`):** Displays a confirmation modal explicitly stating that any `in_progress` team will receive a non-punitive `unresolved` outcome, flushes `sessionEnded` over WebSockets (with a 2–3 second grace period), and tears down all sandbox environments before returning `200 OK`.
+
+## 4.8 NON-PUNITIVE DEBRIEF & "REVEAL FIX" MODULE
+
+At session end, SimOffice generates two distinct debrief views:
+1. **Teacher Debrief (`SCR-19`, `GET /api/v1/sessions/{sessionId}/debrief`):** Backed by the `team_debrief_summary` SQL view. If a team has `outcomeState == 'unresolved'` and `diagnosticChecksPassed > 0 && fullFixChecksPassed == 0`, the UI explicitly renders *"Found the right file/area, didn't reach the full fix before time expired"* rather than a punitive "FAILED" badge (Principle P4, UIUXD §6 `SCR-19`).
+2. **Teacher-Triggered "Reveal Fix" (`POST /api/v1/sessions/{sessionId}/teams/{teamId}/reveal-fix`):** Resolving the UI decision deferred in PRD §13.3 step 4 (UIUXD §8, API Spec §9.2), each unresolved team card on `SCR-19` includes a secondary **"Reveal Fix"** button with a confirmation step. Triggering this endpoint sets `revealedAt` and unlocks `fixContent` on the server so that affected students cannot inspect network traffic to see the root cause until the teacher deliberately reveals it.
+3. **Student Personal Debrief (`SCR-20`, `GET /api/v1/sessions/{sessionId}/debrief/me`):** Backed by `student_contribution_summary`. Scoped strictly to `"me"` via the student's JWT (preventing ID-guessing across students), displaying `codeEdits`, `chatMessages`, `pingsSent`, `emotesUsed`, `verificationsTriggeredPass`, and—if revealed by the teacher—the conditional *"What actually caused this"* root-cause explanation.
+
+---
+
+# CHAPTER 5 — IMPLEMENTATION DETAILS
+
+## 5.1 REPOSITORY STRUCTURE & DEVELOPMENT ENVIRONMENT
+
+An inspection of the project's GitHub repository (`https://github.com/SAHAL-gpp-hub/SimOffice`, branch `main`, commit `0d9abdd2c4e22cd9da0858dc5d9ae97eda2f668c`)[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fgithub.com%2FSAHAL-gpp-hub%2FSimOffice)] confirms the implemented directory layout shown in Table 5.1:
+
+| Directory / File in Repo[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fgithub.com%2FSAHAL-gpp-hub%2FSimOffice)] | Architectural Role in SimOffice Implementation |
+| :--- | :--- |
+| `client/` | React 19 + TypeScript + Vite + Babylon.js 8.x frontend (`[3D/Entry]`, `[Shell]`, `[3D/HUD]`, `[Hybrid]` CodeMirror workstation overlay). |
+| `server/` | Unified Node.js 24 LTS + NestJS + Colyseus 0.17.x `app-server` containing `auth`, `classes`, `sessions`, `teams`, `content-library`, `verification`, `rooms`, and `sandbox` providers. |
+| `sandbox-orchestrator/` | Narrow-privilege internal service with `/var/run/docker.sock` access for managing gVisor (`runsc`) team containers and ephemeral verification containers. |
+| `db/` | PostgreSQL 17.x DDL schema migrations, `team_debrief_summary` and `student_contribution_summary` views, and retention/anonymization SQL functions. |
+| `content-library/` | Git-based scenario packages (e.g., `backend-payment-bug-001/` containing `fix-baseline/`, `issue-variants/`, protected `verification/`, and `manifest.yaml`). |
+| `nginx/` | Reverse proxy configuration (`:443` TLS termination, HTTP `/api/v1` proxy, WebSocket `/rooms` upgrade proxy, static bundle serving). |
+| `spikes/` & `reports/` | Phase 0 architecture spike artifacts (`M0.1`), PoC scripts, and verification reports. |
+| `docs/` | Complete 15-document SimOffice specification suite (`PRD`, `TSSD`, `SAD`, `SSD`, `Compliance`, `DBD`, `API Spec`, `TDD`, `GDD`, `UIUXD`, `AWDD`, `TP`, `Roadmap`, `Effort Estimate`, `Prompt Library`)[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fgithub.com%2FSAHAL-gpp-hub%2FSimOffice)]. |
+| `docker-compose.yml` & `.env.example` | Multi-container orchestration manifest and environment variable template. |
+
+*Table 5.1: SimOffice Repository Directory Structure (`SAHAL-gpp-hub/SimOffice`)[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fgithub.com%2FSAHAL-gpp-hub%2FSimOffice)]*
+
+## 5.2 CONTAINERIZED DEPLOYMENT TOPOLOGY (`DOCKER-COMPOSE` & NGINX)
+
+The root `docker-compose.yml` orchestrates five services on an isolated internal bridge network (`simoffice_internal`), exposing **only port 443** on the `nginx` container to the campus network (SAD §5, SSD §5.1):
+
+```yaml
+# Excerpt: docker-compose.yml (Pilot Edition Topology)
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./client/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - app-server
+    networks:
+      - simoffice_internal
+
+  app-server:
+    build: ./server
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./content-library:/app/content-library:ro
+    depends_on:
+      - postgres
+      - valkey
+      - sandbox-orchestrator
+    networks:
+      - simoffice_internal
+
+  sandbox-orchestrator:
+    build: ./sandbox-orchestrator
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./content-library:/app/content-library:ro
+    networks:
+      - simoffice_internal
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - simoffice_internal
+
+  valkey:
+    image: valkey/valkey:8.0-alpine
+    restart: unless-stopped
+    volumes:
+      - valkey-data:/data
+    networks:
+      - simoffice_internal
+
+volumes:
+  postgres-data:
+  valkey-data:
+
+networks:
+  simoffice_internal:
+    driver: bridge
+```
+
+## 5.3 SANDBOX PROVIDER INTERFACE & ORCHESTRATOR IMPLEMENTATION
+
+Every module inside `server/` interacts with student code environments exclusively through the `SandboxProvider` TypeScript contract (SAD §7.1, SSD §3.2):
+
+```typescript
+// server/src/sandbox/sandbox-provider.interface.ts
+export interface ResourceLimits {
+  cpuCores: number;           // Pilot default: 1 vCPU
+  memoryMb: number;           // Pilot default: 512 MB
+  wallClockTimeoutMs: number; // Pilot default: 30,000 ms per check
+}
+
+export interface EnvironmentRef {
+  teamId: string;
+  provider: 'gvisor' | 'e2b';
+  providerRef: string;
+}
+
+export interface CheckResult {
+  result: 'pass' | 'fail' | 'resource_limit_exceeded';
+  output: string;
+}
+
+export interface VerificationResult {
+  result: 'pass' | 'fail' | 'resource_limit_exceeded';
+  diagnosticDetails: Record<string, unknown>;
+}
+
+export interface SandboxProvider {
+  provision(
+    teamId: string,
+    scenarioVariantId: string,
+    limits: ResourceLimits
+  ): Promise<EnvironmentRef>;
+
+  readFile(env: EnvironmentRef, relativePath: string): Promise<string>;
+  writeFile(env: EnvironmentRef, relativePath: string, content: string): Promise<void>;
+  runCheck(env: EnvironmentRef): Promise<CheckResult>;
+  runVerification(env: EnvironmentRef, harnessRef: string): Promise<VerificationResult>;
+  teardown(env: EnvironmentRef): Promise<void>;
+}
+```
+
+### Enforcing Path Traversal Protection and "Injection-Over-Mount"
+When `readFile` or `writeFile` is invoked, path normalization ensures the student cannot escape `/workspace` (`path.posix.normalize` rejecting any `..` prefix). When `submitVerification` is called, `app-server` wraps the execution in a 30-second timeout race and guarantees ephemeral cleanup in a `try / finally` block:
+
+```typescript
+// Ephemeral Injection-Over-Mount Verification Pattern (SSD §3.4, §4.1)
+async executeCheckWithCeiling(
+  env: EnvironmentRef,
+  harnessRef: string,
+  timeoutMs = 30000
+): Promise<VerificationResult> {
+  const timeoutPromise = new Promise<VerificationResult>((resolve) =>
+    setTimeout(() => resolve({
+      result: 'resource_limit_exceeded',
+      diagnosticDetails: { reason: `Check exceeded ${timeoutMs}ms wall-clock ceiling` }
+    }), timeoutMs)
+  );
+
+  // sandbox-orchestrator snapshots /workspace, starts a fresh runsc container
+  // with --cpus=1 --memory=512m --network=none, injects harnessRef, runs, and destroys in finally{}
+  return Promise.race([
+    this.sandboxProvider.runVerification(env, harnessRef),
+    timeoutPromise,
+  ]);
+}
+```
+
+## 5.4 COLYSEUS ROOM SCHEMA & RESILIENCE IMPLEMENTATION
+
+The real-time state of each department team is synchronized using `@colyseus/schema` (SAD v1.3 §8.2):
+
+```typescript
+// server/src/modules/rooms/schema/team-room.state.ts
+import { Schema, MapSchema, ArraySchema, type } from '@colyseus/schema';
+
+export class ChatMessage extends Schema {
+  @type('string') rosterEntryId: string = '';
+  @type('string') displayName: string = '';
+  @type('string') channel: string = 'department';
+  @type('string') message: string = '';
+  @type('number') timestamp: number = 0;
+}
+
+export class PlayerState extends Schema {
+  @type('string') rosterEntryId: string = '';
+  @type('string') displayName: string = '';
+  @type('number') x: number = 0;
+  @type('number') y: number = 0;
+  @type('number') z: number = 0;
+  @type('string') animState: string = 'idle'; // idle | walk | jump | sit | emote
+  @type('boolean') seated: boolean = false;
+  @type('string') deskId: string = '';
+  @type('boolean') connected: boolean = true; // false = "stepped away", seat held
+}
+
+export class TeamRoomState extends Schema {
+  @type({ map: PlayerState }) players = new MapSchema<PlayerState>();
+  @type('string') briefingText: string = '';
+  @type('string') outcomeState: string = 'in_progress'; // in_progress | resolved | unresolved
+  @type('string') environmentId: string = '';
+  @type([ChatMessage]) chatLog = new ArraySchema<ChatMessage>();
+}
+```
+
+## 5.5 REST API & WEBSOCKET IMPLEMENTATION CONTRACTS
+
+All REST endpoints are prefixed with `/api/v1` and return a standardized error envelope `{ error: { code, message, details } }` (API Spec v1.1 §2.4, §13). Table 5.2 lists the implemented error codes and their security/operational triggers:
+
+| Error Code | HTTP / WS Status | Triggering Condition in `app-server` |
+| :--- | :--- | :--- |
+| `VALIDATION_ERROR` | `400` | Request payload failed DTO schema validation. |
+| `INVALID_CREDENTIALS` | `401` | Incorrect teacher email or password on `POST /auth/login`. |
+| `INVALID_ROSTER_PASSCODE` | `401` | Provided `rosterPasscode` (`WOLF-42`) does not match any roster entry in `session.class_id`. |
+| `UNAUTHENTICATED` | `401` | Missing, expired, or tampered HS256 JWT bearer token. |
+| `ACCOUNT_DEACTIVATED` | `403` | Teacher account has `deactivated_at IS NOT NULL` (PRD §11.1). |
+| `FORBIDDEN` | `403` | Valid JWT, but wrong role or wrong `teamId` / `classId` ownership scope. |
+| `NOT_FOUND` / `INVALID_JOIN_CODE` | `404` | Target resource or 6-character `joinCode` does not exist. |
+| `SESSION_NOT_JOINABLE` | `409` | Join attempted on a session in `ended`, `debriefed`, or `torn_down` status. |
+| `SESSION_ROSTER_FULL` | `409` | `max_roster_size` reached; enforced **only for new students**, exempting returning students (§3.2). |
+| `ROSTER_CLASS_MISMATCH` | `409` | Cross-entity boundary violation (`roster_entries.class_id != sessions.class_id`). |
+| `NO_ELIGIBLE_VARIANT` | `409` | All matching `scenario_variants` have already been used with this `class_id` (PRD §11.5.3). |
+| `ENVIRONMENT_NOT_READY` | `409` | Workstation file/check call or `sitAtDesk` attempted before session status is `active`. |
+| `DESK_OCCUPIED` | `409` (WS) | Simultaneous `sitAtDesk` lost the race; payload includes `nearestFreeDeskId`. |
+| `RESOURCE_LIMIT_EXCEEDED` | `422` | Informal `run-check` breached the 1 vCPU / 512 MB / 30s sandbox ceiling. |
+| `RATE_LIMITED` | `429` | Valkey rate-limit threshold exceeded (includes `Retry-After` header). |
+| `PROVISIONING_FAILED` | `502` | `SandboxProvider.provision()` failed after 1 automatic server-side retry. |
+| `SERVICE_UNAVAILABLE` | `503` | PostgreSQL database unreachable (SAD §14). |
+
+*Table 5.2: Security & Application Error Code Reference (API Spec v1.1 §13, SSD v1.0 §9.2)*
+
+## 5.6 DATABASE SCHEMA, VIEWS & RETENTION SQL IMPLEMENTATION
+
+The complete PostgreSQL 17.x DDL is provided in **Appendix B**. Two SQL views power the Teacher and Student Debrief screens (`SCR-19` and `SCR-20`, API Spec §9.1–9.3):
+
+1. **`team_debrief_summary` View:** Aggregates `teams`, `verification_checks`, and `verification_runs` to compute `full_fix_checks_passed`, `full_fix_checks_total`, `diagnostic_checks_passed`, and `first_pass_at` (`MIN(ran_at)` where `result = 'pass'`).
+2. **`student_contribution_summary` View:** Aggregates `contribution_events` and `verification_runs` per `(session_id, team_id, roster_entry_id)` to compute `code_edits`, `chat_messages`, `pings_sent`, `emotes_used`, and `verifications_triggered_pass`.
+
+---
+
+# CHAPTER 6 — TESTING & SECURITY VERIFICATION
+
+## 6.1 MULTI-TIER TESTING STRATEGY
+
+In accordance with the SimOffice Testing Plan (`TP v1.0`) and Security & Sandbox Design (`SSD v1.0` §14), verification is structured across five distinct testing tiers (TSSD v2.1 §3, §5.8):
+1. **Unit & Schema Validation Testing (`Vitest`):** Tests NestJS services, passcode generation (`WOLF-42`), path-traversal sanitization, JWT guards, and database constraint logic.
+2. **Security Proof-of-Concept (PoC) Verification (`SSD §14.1`):** Seven mandatory adversarial security tests verifying trust-zone tamper resistance, cross-team isolation, resource ceiling enforcement, and server-authoritative grading.
+3. **End-to-End UI & API Flow Testing (`Playwright`):** Automates the `[Shell]` teacher setup (`SCR-01` to `SCR-05`), student join and character creation (`SCR-06`, `SCR-07`), dashboard hint/announcement pushes (`SCR-15` to `SCR-18`), and non-punitive debrief/reveal-fix flows (`SCR-19`, `SCR-20`).
+4. **Concurrency & Rate-Limit Load Testing (`k6`):** Validates Valkey rate-limiting thresholds (`429 RATE_LIMITED`) and concurrent WebSocket room synchronization.
+5. **Physical Campus Hardware Baseline Testing:** Executes the Babylon.js 3D scene directly on campus lab machines and Chromebooks to record join time, sustained FPS, and check latency (PRD §16.2, TSSD §10).
+
+## 6.2 SECURITY PROOF-OF-CONCEPT (POC) VERIFICATION PLAN
+
+Table 6.1 documents the seven mandatory security verification cases defined in SSD v1.0 (§14.1) and TSSD v2.1 (§10):
+
+| PoC ID | Security Verification Target | Test Execution Method | Pass Criterion | Architectural Mechanism Verified |
+| :--- | :--- | :--- | :--- | :--- |
+| **POC-S-01** | **Trust-Zone Tamper Resistance** | Attempt to read, modify, or delete the verification harness via `GET/PUT /teams/{id}/workstation/files/{path}` including `../../` payloads. | All attempts return `400`/`404`; no path resolves outside `/workspace`; harness is absent from `/workspace`. | Injection-Over-Mount (`SAD §7.2`, `SSD §3.1`) |
+| **POC-S-02** | **Cross-Environment Isolation** | From Team A's sandboxed execution context, attempt filesystem access or network socket connection to Team B's container or PostgreSQL (`:5432`). | All network/filesystem attempts fail; zero cross-team or host data leakage. | `runsc` / Firecracker kernel & network namespace isolation (`SSD §5.1`) |
+| **POC-S-03** | **Resource Ceiling Enforcement** | Submit a `while(true){}` loop and memory allocation bomb inside `/workspace` and trigger `run-check` / `submit-verification`. | Execution terminated at 30s / 512 MB; returns `RESOURCE_LIMIT_EXCEEDED`; host `app-server` and other teams unaffected. | `ResourceLimits` (`--cpus=1 --memory=512m`) + 30s `Promise.race` (`SSD §4`) |
+| **POC-S-04** | **Sandbox Egress Control** | Execute `curl https://example.com` inside student code during `run-check`. | Outbound connection refused/blocked (enforced via `--network=none` in `GVisorProvider`; open check on E2B free tier). | Network namespace isolation (`TSSD §5.3`, `SSD §5.4`) |
+| **POC-S-05** | **API Team-Scope Authorization** | Authenticate as Student on Team A and invoke `GET /api/v1/teams/{teamB_id}/workstation/files`. | Rejected immediately with `403 FORBIDDEN`. | `RosterGuard` JWT `teamId` claim validation (`API Spec §2.3`) |
+| **POC-S-06** | **Brute-Force Rate Limiting** | Issue 100 rapid requests to `POST /api/v1/auth/login` and `POST /api/v1/sessions/join` using `k6`. | Requests exceeding 5/min (login) or 10/min (join) return `429 RATE_LIMITED` with `Retry-After` header. | Valkey sliding-window rate limiter (`API Spec §2.6`) |
+| **POC-S-07** | **Verification Result Authority** | Intercept the Colyseus WebSocket connection and inject a client-crafted `verificationResult: { result: "pass" }` message. | Server ignores client message; `teams.outcome_state` remains `in_progress` until server-side `runVerification` passes. | Server-authoritative grading (`PRD §8.5`, `SSD §11.1`) |
+
+*Table 6.1: Pre-Pilot Security Proof-of-Concept (PoC) Verification Matrix (SSD v1.0 §14.1)*
+
+## 6.3 FUNCTIONAL & API CONTRACT TEST CASES
+
+| Test ID | Module | Test Scenario Description | Expected HTTP / System Result |
+| :--- | :--- | :--- | :--- |
+| **TC-F-01** | Auth | Teacher login with valid credentials (`POST /auth/login`). | `200 OK` with signed Teacher JWT (`role: "teacher"`). |
+| **TC-F-02** | Auth | Deactivated teacher login (`accounts.deactivated_at` set). | `403 ACCOUNT_DEACTIVATED`. |
+| **TC-F-03** | Roster Join | First-time student joins session omitting `rosterPasscode`. | `201 Created`; generates `WOLF-42` passcode; `appearance: {}` routes client to `SCR-07`. |
+| **TC-F-04** | Roster Join | Returning student joins with valid `rosterPasscode` (`WOLF-42`). | `200 OK`; reuses `roster_entries.id`; preserves existing `appearance`. |
+| **TC-F-05** | Roster Cap | New student attempts to join when `max_roster_size` is full. | `409 SESSION_ROSTER_FULL`. |
+| **TC-F-06** | Roster Cap | Returning student reconnects with passcode when `max_roster_size` is full. | `200 OK` (returning students are exempt from roster cap per `API Spec §3.2`). |
+| **TC-F-07** | Session Setup | Teacher creates session with auto-selected variant (`POST /sessions`); checks no-repeat rule. | `201 Created`; picks unused variant for `class_id` or returns `409 NO_ELIGIBLE_VARIANT`. |
+| **TC-F-08** | Lobby Lock | Student attempts `GET /workstation/files` while session is still `created` (in lobby). | `409 ENVIRONMENT_NOT_READY`. |
+| **TC-F-09** | Verification | Team passes `diagnostic` check but fails `full_fix` check on `submit-verification`. | `200 OK`; `diagnosticChecksPassed = 1`, `fullFixChecksPassed = 0`, `outcomeState = "in_progress"`. |
+| **TC-F-10** | Debrief / Reveal | Teacher ends session early (`POST /end`), then triggers `POST .../reveal-fix` for unresolved team. | Session reaches `ended`; environments `torn_down`; `fixContent` becomes visible on `GET /debrief/me`. |
+| **TC-F-11** | Privacy | Teacher invokes `DELETE /classes/{id}/roster/{rosterEntryId}`. | `204 No Content`; `display_name` set to `'Deleted Student'`, attribution nulled in-place. |
+
+*Table 6.2: Functional & API Contract Test Cases (API Spec v1.1)*
+
+## 6.4 REAL-TIME MULTIPLAYER & RESILIENCE TEST CASES
+
+| Test ID | Resilience Requirement (`PRD §12.13`) | Test Scenario | Expected System Outcome |
+| :--- | :--- | :--- | :--- |
+| **TC-R-01** | **Simultaneous Desk Conflict** | Student A and Student B send `sitAtDesk("desk-1")` within the same tick. | First processed call succeeds (`seated = true`); second receives `DESK_OCCUPIED` + `nearestFreeDeskId`. |
+| **TC-R-02** | **Unintentional Disconnect** | Seated student's Wi-Fi drops mid-edit (`onLeave(consented = false)`). | `PlayerState.connected` flips to `false` ("Stepped Away"); `desk-1` remains reserved; saved edits persist. |
+| **TC-R-03** | **Intentional Leave** | Seated student closes tab deliberately (`onLeave(consented = true)`). | Server logs `session_left`, automatically invokes `standUp()` to free `desk-1`, and removes player from room. |
+| **TC-R-04** | **Late Student Join** | Student joins 10 minutes after `POST /sessions/{id}/start`. | Joins existing team room and existing `environment_instance`; receives current `briefingText` and `chatLog`. |
+| **TC-R-05** | **Abandoned Session Cleanup** | Active session has zero room or teacher activity for 20 minutes. | Cron job triggers teardown path (`end_reason = 'abandoned_timeout'`); all containers reach `torn_down`. |
+
+*Table 6.3: Real-Time Multiplayer, Desk Conflict, and Resilience Test Cases (SAD v1.3 §8.3, API Spec §10.5)*
+
+## 6.5 ACCESSIBILITY & DEVICE BASELINE VERIFICATION PROTOCOL
+
+Per PRD v3.1 (§9.6, §16.2, §16.5) and UIUXD v2.2 (`SCR-00`, §10), accessibility and hardware performance are verified against four strict protocols:
+1. **Keyboard-Only Completion Audit:** Every action from `SCR-00` login/join through `SCR-08` onboarding obstacles, `SCR-11` sitting at a desk, and `SCR-14` code editing/verification is executed with the mouse unplugged via the shared Input-Mapping Layer.
+2. **In-World Visual/Caption Parity:** Every audio cue (Notice Board update chime on `SCR-10`, Verification pass chime on `SCR-21`) is paired with an immediate visual state change on the 3D object itself.
+3. **Reduced-Motion & WebGL Fallbacks (`SCR-00`):** Testing with OS `prefers-reduced-motion: reduce` confirms the 2-second entry camera fly-through and door animations are replaced by instant cuts, and disabling WebGL renders the static building exterior `<img>` fallback with a fully functional 2D login/join card.
+4. **Campus Lab Hardware Telemetry Recording:** When running on target college lab PCs/Chromebooks, the three mandatory metrics—**Session Join Time (<10s target)**, **Sustained Frame Rate (≥30 FPS floor)**, and **Workstation Check Latency (<10s for Beginner tier)**—must be quantitatively logged before conducting a live student cohort run (TSSD v2.1 §10 item 2).
+
+## 6.6 IMPLEMENTATION AUDIT & VERIFICATION STATUS SUMMARY
+
+In accordance with Section 2.G and Section 5 of the report guidelines (Academic Integrity & Honest Reporting), Table 6.4 distinguishes between **Completed Phase 0 Code & Design Artifacts** in `SAHAL-gpp-hub/SimOffice`[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fgithub.com%2FSAHAL-gpp-hub%2FSimOffice)] and **Pending Classroom Cohort Evaluations**:
+
+| Project Deliverable / Verification Dimension | Current Status | Evidence Source |
+| :--- | :--- | :--- |
+| **15-Document Engineering Specification Suite** | **100% Completed** | `docs/` in `SAHAL-gpp-hub/SimOffice`[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fgithub.com%2FSAHAL-gpp-hub%2FSimOffice)] |
+| **Phase 0 Source Code (`client`, `server`, `db`, `sandbox-orchestrator`, `nginx`)** | **Completed & Pushed** | `main` branch (commit `0d9abdd`)[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fgithub.com%2FSAHAL-gpp-hub%2FSimOffice)] |
+| **Phase 0 Scenario Package (`backend-payment-bug-001`)** | **Completed & Pushed** | `content-library/` in repo[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fgithub.com%2FSAHAL-gpp-hub%2FSimOffice)] |
+| **Security PoC & Functional Test Suite Definition** | **Specified & Ready** | `SSD v1.0 §14`, `TP v1.0`, `spikes/`, `reports/`[[1](https://www.google.com/url?sa=E&q=https%3A%2F%2Fgithub.com%2FSAHAL-gpp-hub%2FSimOffice)] |
+| **Live Classroom Cohort UAT & Exit Criteria Telemetry (PRD §5.2)** | **Ready for Pilot Execution** | Awaits live student cohort run post-compliance sign-off (`Compliance Spec v1.0`) |
+
+*Table 6.4: Requirements-to-Implementation & Verification Traceability Summary*
+
+---
+
+# CHAPTER 7 — USER INTERFACE DESIGN & SYSTEM SCREENS
+
+## 7.1 UI/UX DESIGN PRINCIPLES & TAXONOMY
+
+The SimOffice user interface is governed by eight non-negotiable design principles derived from PRD v3.1/v3.2 and formalized in UIUXD v2.1/v2.2 (§3):
+
+| Principle ID | Design Principle | Excluded Anti-Pattern (What It Rules Out) |
+| :--- | :--- | :--- |
+| **P1** | **Shared Object Visibility:** Object state changes are visible to everyone in the room. | Hidden menus that update state silently for only one player. |
+| **P2** | **Diegetic Contextual Prompts:** In-world interactions use contextual prompts, never browser popups. | Browser-style modal dialogs inside the 3D world. |
+| **P3** | **Keyboard-First Parity:** Every pointer-reachable action is keyboard-reachable via the shared input layer. | Mouse-only controls or precision-timed platforming barriers. |
+| **P4** | **Non-Punitive Framing:** Partial diagnostic progress is always distinguished from total failure. | A bare "FAILED" badge anywhere in the product (`SCR-15`, `SCR-19`, `SCR-20`). |
+| **P5** | **Visual/Captioned Audio Parity:** Every audio cue has a visual equivalent on the in-world object itself. | Audio-only alarms, chimes, or notifications. |
+| **P6** | **Explicit Resource-Limit Outcome:** Ceiling breaches render as a defined outcome, never an infinite spinner. | Indefinite loading spinners when a student writes an infinite loop (`SCR-14`/`22`). |
+| **P7** | **Automatic Progress Saving:** Code edits and cursor state save automatically on a debounce timer. | Manual "Save" buttons that a student can forget to press before standing up. |
+| **P8** | **Continuous World State on Reconnect/Late Join:** Returning students see the live world as it stands. | Resetting the environment or showing a "fresh start" screen to a late joiner. |
+
+*Table 7.1: Core UI/UX Design Principles (P1–P8) and Excluded Anti-Patterns (UIUXD v2.1 §3)*
+
+### Complete Phase 0 Screen Taxonomy (`SCR-00` to `SCR-26`)
+
+| Screen ID | Screen Title | UI Layer | Primary Actor | Backing API / WS Contract |
+| :--- | :--- | :--- | :--- | :--- |
+| **SCR-00** | Building Exterior / Access Panel | `[3D/Entry]` | Teacher & Student | `POST /auth/login`, `POST /sessions/join` |
+| **SCR-01** | Staff Administration Login (Variant of `SCR-00`) | `[Shell]` | Teacher | `POST /api/v1/auth/login` |
+| **SCR-02** | Class List & Creation | `[Shell]` | Teacher | `GET / POST / PATCH /api/v1/classes` |
+| **SCR-03** | Reactive Roster Management | `[Shell]` | Teacher | `GET / DELETE /api/v1/classes/{id}/roster` |
+| **SCR-04** | Session Setup & Scenario Selector | `[Shell]` | Teacher | `GET /scenarios`, `POST / PATCH / clone /sessions` |
+| **SCR-05** | Lobby Control & Provisioning Status | `[Shell]` | Teacher | `POST /api/v1/sessions/{id}/start`, `GET /sessions/{id}` |
+| **SCR-06** | Student Join Session (Variant of `SCR-00`) | `[Shell]` | Student | `POST /api/v1/sessions/join` |
+| **SCR-07** | Character Creation (Color/Pattern & Name Tag) | `[Shell → 3D]` | Student | `PATCH /api/v1/roster-entries/{id}/character` |
+| **SCR-08** | First-Day Onboarding Course HUD | `[3D/HUD]` | Student | Client-local tutorial state + Input-Mapping Layer |
+| **SCR-09** | Contextual Interaction Prompt (Reusable) | `[3D/HUD]` | Student | Proximity trigger + Keyboard label |
+| **SCR-10** | Notice Board / Mission Briefing Panel | `[3D/HUD]` | Student & Teacher | `TeamRoomState.briefingText`, `announcementPosted` |
+| **SCR-11** | Desk / Workstation Status Indicators | `[3D/HUD]` | Student & Teacher | `PlayerState.seated`, `deskId`, `sitAtDesk` |
+| **SCR-12** | Non-Modal Department Chat Panel | `[3D/HUD]` | Student | `sendChat`, `TeamRoomState.chatLog` |
+| **SCR-13** | Teammate Location Ping Indicator | `[3D/HUD]` | Student | `sendPing` room broadcast |
+| **SCR-14** | Workstation Code Editor Overlay | `[Hybrid]` | Student | `GET/PUT /files`, `POST /run-check`, `POST /submit-verification` |
+| **SCR-15** | Teacher Live Dashboard (2D Roster & Status) | `[Shell]` | Teacher | `GET /api/v1/sessions/{id}/dashboard` |
+| **SCR-16** | Send Targeted Team Hint (Modal in `SCR-15`) | `[Shell]` | Teacher | `POST /api/v1/sessions/{id}/teams/{teamId}/hint` |
+| **SCR-17** | Push Live Announcement (Modal in `SCR-15`) | `[Shell]` | Teacher | `POST /api/v1/sessions/{id}/announcements` |
+| **SCR-18** | End Session Confirmation (Modal in `SCR-15`) | `[Shell]` | Teacher | `POST /api/v1/sessions/{id}/end` |
+| **SCR-19** | Teacher Debrief & "Reveal Fix" Control | `[Shell]` | Teacher | `GET /debrief`, `POST .../reveal-fix` |
+| **SCR-20** | Student Personal Debrief Card | `[Shell]` | Student | `GET /api/v1/sessions/{id}/debrief/me` |
+| **SCR-21** |
+Sources
+help
+GitHub - SAHAL-gpp-hub/SimOffice · GitHub
+Model 8:46 PM
+The previous response hit the output length limit right at `SCR-21` in Chapter 7!
+
+Below is **Part 1: The Complete Continuation of the Report** (finishing Chapter 7, Chapter 8: Conclusion & Future Work, APA References, and Appendices A–F including Installation Guide, Full PostgreSQL Database Schema from `DBD v1.1`, Troubleshooting Guide, API Reference, User Manual, and Glossary).
+
+Immediately following that is **Part 2: A Production-Grade, Print-Perfect HTML + CSS Academic Report (`SimOffice_Academic_Report.html`)** that incorporates your professor's **exact** A4 margin and typography rules (`3.81 cm` left margin, `2.54 cm` top/right/bottom margins, `Times New Roman`, `16 pt` bold chapter headings, `14 pt` uppercase section headings, `12 pt` uppercase subsection headings, `1.5` line spacing, clean page breaks, academic tables, styled screenshot placeholders, and zero-overlap print layout) so you can open it in Chrome/Edge and press **`Ctrl + P` → "Save as PDF"** (or open it in Microsoft Word to save as `.docx`) and get a publication-quality report.
+
+---
+
+# PART 1 — REPORT CONTINUATION (CHAPTER 7 COMPLETION, CHAPTER 8, REFERENCES & APPENDICES A–F)
+
+### Continuation of Table 7.2: Complete Phase 0 Screen Taxonomy (`SCR-21` to `SCR-26`)
+
+| Screen ID | Screen Title | UI Layer | Primary Actor | Backing API / WS Contract |
+| :--- | :--- | :--- | :--- | :--- |
+| **SCR-21** | Verification Confirmation Moment | `[3D/HUD]` | Student | `verificationResult` WS stream (`API Spec §7.5`, `§10.4`) |
+| **SCR-22** | Resource-Limit-Exceeded State | `[Hybrid]` | Student & Teacher | `result: "resource_limit_exceeded"` (`API Spec §7.4–7.5`, `§8.1`) |
+| **SCR-23** | Session-Ended / Torn-Down State | `[Shell/3D]` | Student | `sessionEnded` WS event (`API Spec §5.7`, `§10.4`) |
+| **SCR-24** | Disconnect / Reconnecting ("Stepped Away") State | `[3D/HUD]` | Student & Teacher | `onLeave(consented=false)`, `PlayerState.connected` (`API Spec §10.5`) |
+| **SCR-25** | Late-Join Entry State | `[Shell → 3D]` | Student | `POST /api/v1/sessions/join`, `GET /files` (`API Spec §3.2`, `§7.1`) |
+| **SCR-26** | Generic Error / Auth-Failure Toast & Banner | `[Shell]` | Teacher & Student | Standard error envelope (`API Spec §2.4`, `§13`, `role="alert"`) |
+
+*Table 7.2 (Continued): Complete Phase 0 Screen Taxonomy (`SCR-21` through `SCR-26`) (UIUXD v2.1 §6, §9)*
+
+---
+
+## 7.2 BUILDING EXTERIOR & DIEGETIC ACCESS PANEL (`SCR-00`, `SCR-01`, `SCR-06`)
+
+When any user navigates to the SimOffice URL, the client executes Phase 1 of the two-phase engine initialization (`initEntryScene()`, TDD v1.1 §9.1). Rather than showing a conventional web login page, the browser renders the 3D exterior of the SimOffice corporate headquarters (`[3D/Entry]`). Floating in front of the entrance is the diegetic Access Panel card (`SCR-00`), which automatically switches between the Teacher variant (`SCR-01` at `/teacher`) and the Student variant (`SCR-06` at `/`).
+
+```
++-----------------------------------------------------------------------------------+
+| [IMAGE PLACEHOLDER — FIGURE 7.1: SCR-00 BUILDING EXTERIOR & ACCESS PANEL]         |
+|                                                                                   |
+|  Visual Layout Description (UIUXD v2.2 SCR-00 / PRD v3.2 §10.4):                  |
+|  • Background: Full-viewport Babylon.js 3D render of modern corporate building    |
+|    facade with cool neutral architectural palette, glass entrance doors, and      |
+|    illuminated SimOffice signage.                                                 |
+|  • Foreground Overlay: Frosted-glass floating card (400–440px width, backdrop     |
+|    blur) aligned with the 3D entrance terminal housing.                           |
+|  • Six Supported States: Idle (LED steady), Authenticating (doors cracked 20%,    |
+|    LED pulsing), Auth-Success (doors open 0.5s + 2s camera fly-through),          |
+|    Auth-Failure (doors snap shut + red LED flash), Reduced-Motion (instant cut),  |
+|    and WebGL-Unavailable (static <img> background + 2D card).                     |
++-----------------------------------------------------------------------------------+
+```
+*Figure 7.1: `SCR-00` Building Exterior & Diegetic Access Panel — Idle & Authenticating States*
+
+```
++----------------------------------------+ +----------------------------------------+
+| [IMAGE PLACEHOLDER — FIGURE 7.2A:      | | [IMAGE PLACEHOLDER — FIGURE 7.2B:      |
+|  SCR-01 TEACHER LOGIN VARIANT (/teacher)]| |  SCR-06 STUDENT JOIN VARIANT (/)]      |
+|                                        | |                                        |
+|  • Header: "Administration Access"     | |  • Header: "Join Session"              |
+|  • Sub-header: "Staff Login"           | |  • Inputs:                             |
+|  • Inputs: Email/Username, Password    | |    - 6-Char Join Code (e.g., AB3XQ9)   |
+|  • Action: "Log In" (POST /auth/login) | |    - Display Name (e.g., Rahul)        |
+|  • Error Region: Plain-language alert  | |    - Optional Passcode (e.g., WOLF-42) |
+|    associated via aria-describedby.    | |  • States: 409 SESSION_ROSTER_FULL     |
++----------------------------------------+ +----------------------------------------+
+```
+*Figure 7.2: `SCR-01` Teacher Administration Login vs. `SCR-06` Student Session Join Variants*
+
+---
+
+## 7.3 TEACHER SHELL SCREENS (`SCR-02` TO `SCR-05`, `SCR-15` TO `SCR-19`)
+
+Once authenticated, Mentor Priya operates entirely within the React 19 `[Shell]` workflow:
+* **Class List (`SCR-02`) & Reactive Roster Management (`SCR-03`):** Displays active classes (`GET /api/v1/classes`) and each class's persistent student roster (`GET /api/v1/classes/{classId}/roster`). Because `roster_entries` are created reactively when students first join a session, new classes start with an empty roster state. Removing a student invokes `DELETE /api/v1/classes/{classId}/roster/{rosterEntryId}`, which executes `anonymize_roster_entry()` in PostgreSQL (`DBD v1.1 §8.2`) after a confirmation dialog.
+* **Session Setup (`SCR-04`) & Lobby Control (`SCR-05`):** Allows the teacher to select a scenario (`GET /api/v1/scenarios`), difficulty tier, and issue category, or clone a prior session (`POST /api/v1/sessions/{id}/clone`). In Phase 0, the **Multi-Department** toggle is visibly rendered with a `"Phase 1"` badge rather than hidden (`UIUXD SCR-04`). Creating a session immediately opens the Colyseus room so students can enter the lobby (`SCR-05`) while the teacher watches the roster fill up prior to clicking **Start Session** (`POST /api/v1/sessions/{id}/start`).
+
+```
++----------------------------------------+ +----------------------------------------+
+| [IMAGE PLACEHOLDER — FIGURE 7.3A:      | | [IMAGE PLACEHOLDER — FIGURE 7.3B:      |
+|  SCR-02 TEACHER CLASS LIST]            | |  SCR-03 REACTIVE ROSTER MANAGEMENT]    |
+|                                        | |                                        |
+|  • Lists classes owned by teacher      | |  • Table of class-scoped RosterEntries |
+|    (e.g., "IT Diploma Sem 6 - Lab A")  | |    (Display Name, CreatedAt, LastSeen) |
+|  • Quick actions: "Manage Roster",     | |  • Never exposes roster_passcode_hash  |
+|    "New Session", "Archive Class"      | |  • "Remove from Roster" triggers       |
+|  • Includes First-Run Empty State.     | |    in-place anonymization dialog.      |
++----------------------------------------+ +----------------------------------------+
+```
+*Figure 7.3: `SCR-02` Teacher Class List & `SCR-03` Reactive Roster Management*
+
+```
++----------------------------------------+ +----------------------------------------+
+| [IMAGE PLACEHOLDER — FIGURE 7.4A:      | | [IMAGE PLACEHOLDER — FIGURE 7.4B:      |
+|  SCR-04 SESSION SETUP CONFIGURATION]   | |  SCR-05 LIVE LOBBY CONTROL]            |
+|                                        | |                                        |
+|  • Filterable Scenario Cards           | |  • Large Copyable Join Code: "AB3XQ9"  |
+|  • Difficulty & Category Selectors     | |  • Live Roster Count vs maxRosterSize  |
+|  • Department Mode: Single-Dept active;| |  • "Start Session" triggers            |
+|    Multi-Dept tagged [Phase 1]         | |    Provisioning state (502 per-team    |
+|  • Handles 409 NO_ELIGIBLE_VARIANT.    | |    partial failure display supported). |
++----------------------------------------+ +----------------------------------------+
+```
+*Figure 7.4: `SCR-04` Session Setup Configuration & `SCR-05` Live Lobby Control*
+
+```
++-----------------------------------------------------------------------------------+
+| [IMAGE PLACEHOLDER — FIGURE 7.9: SCR-15 TEACHER LIVE DASHBOARD WITH               |
+|  SCR-16 (SEND HINT), SCR-17 (PUSH ANNOUNCEMENT), AND SCR-18 (END SESSION MODAL)]  |
+|                                                                                   |
+|  • Team Summary Card: outcomeState (in_progress / resolved / unresolved),         |
+|    fullFixChecksPassed / Total (0/1), diagnosticChecksPassed (1/1), and           |
+|    resourceLimitExceeded indicator.                                               |
+|  • Live Student Roster List: Display Name, Connected badge (grayed out "Offline / |
+|    Stepped Away" if disconnected), Seated status, and active deskId ("desk-1").   |
+|  • Action Bar Modals:                                                             |
+|    - SCR-16: Send Targeted Hint to Team (POST .../hint)                           |
+|    - SCR-17: Push Customer Alert to Notice Board (POST .../announcements)         |
+|    - SCR-18: End Session Confirmation explicitly stating that in_progress teams   |
+|      receive a non-punitive "unresolved" outcome and environments tear down.      |
++-----------------------------------------------------------------------------------+
+```
+*Figure 7.9: `SCR-15` Teacher Live Dashboard with `SCR-16` Hint, `SCR-17` Announcement, and `SCR-18` End Session Modals*
+
+---
+
+## 7.4 STUDENT ONBOARDING, 3D HUD & WORKSTATION (`SCR-07` TO `SCR-14`)
+
+When a student joins (`POST /api/v1/sessions/join`), the client inspects the returned `appearance` JSONB object (`API Spec v1.1 §3.2`). If `appearance` is `{}` (first-time student in this class, or a student who previously disconnected before saving an avatar), the client displays Character Creation (`SCR-07`, `PATCH /api/v1/roster-entries/{id}/character`) followed by the First-Day Onboarding Course HUD (`SCR-08`). Returning students with a saved appearance bypass both screens and spawn directly into the Backend Engine Room.
+
+```
++----------------------------------------+ +----------------------------------------+
+| [IMAGE PLACEHOLDER — FIGURE 7.5A:      | | [IMAGE PLACEHOLDER — FIGURE 7.5B:      |
+|  SCR-07 CHARACTER CREATION]            | |  SCR-08 ONBOARDING COURSE HUD]         |
+|                                        | |                                        |
+|  • 3D Avatar Preview (Fall-Guys style) | |  • Short obstacle corridor teaching    |
+|  • MVP Body Color/Pattern Swatch Grid  | |    Walk, Jump, and Sit/Interact        |
+|  • Display Name Tag Input              | |  • Every prompt displays explicit      |
+|  • Echoes & saves class-scoped         | |    Keyboard Key bindings (WASD / E)    |
+|    passcode (e.g., "WOLF-42").         | |  • Zero failure/game-over state (§9.6).|
++----------------------------------------+ +----------------------------------------+
+```
+*Figure 7.5: `SCR-07` Student Character Creation & `SCR-08` First-Day Onboarding Course HUD*
+
+```
++-----------------------------------------------------------------------------------+
+| [IMAGE PLACEHOLDER — FIGURE 7.6: IN-WORLD HUD — SCR-09 CONTEXTUAL PROMPT,         |
+|  SCR-10 MISSION BRIEFING NOTICE BOARD, AND SCR-11 DESK STATUS INDICATORS]         |
+|                                                                                   |
+|  • SCR-09 Contextual Prompt: "[E] Sit at Workstation" / "[F] Read Notice Board"   |
+|    floating directly in 3D space (never a browser popup).                         |
+|  • SCR-10 Notice Board: Displays symptom-only briefing ("Customers report their   |
+|    payment sometimes fails silently") with visual highlight flash + caption       |
+|    when updated mid-session by the teacher.                                       |
+|  • SCR-11 Desk Indicators: Visible to all teammates (Empty / Occupied / Working); |
+|    simultaneous sit conflicts smoothly redirect runner-up to nearestFreeDeskId.   |
++-----------------------------------------------------------------------------------+
+```
+*Figure 7.6: `SCR-09` Contextual Prompts, `SCR-10` Mission Briefing Board & `SCR-11` Desk Status Indicators*
+
+```
++----------------------------------------+ +----------------------------------------+
+| [IMAGE PLACEHOLDER — FIGURE 7.7A:      | | [IMAGE PLACEHOLDER — FIGURE 7.7B:      |
+|  SCR-12 NON-MODAL DEPARTMENT CHAT]     | |  SCR-13 TEAMMATE PING INDICATOR]       |
+|                                        | |                                        |
+|  • Collapsible bottom-left HUD panel   | |  • 3D spatial flag marker above target |
+|  • Tabs: Department / Company-Wide     | |    workstation ("Rahul pinged Desk 2") |
+|  • Does not block WASD movement or     | |  • Logged to contribution_events for   |
+|    camera rotation while open (P2).    | |    collaboration attribution (§12.9).  |
++----------------------------------------+ +----------------------------------------+
+```
+*Figure 7.7: `SCR-12` Non-Modal Department Chat Panel & `SCR-13` Teammate Ping Indicator*
+
+```
++-----------------------------------------------------------------------------------+
+| [IMAGE PLACEHOLDER — FIGURE 7.8: SCR-14 HYBRID WORKSTATION CODE EDITOR OVERLAY    |
+|  & SCR-22 RESOURCE-LIMIT-EXCEEDED OUTCOME STATE]                                  |
+|                                                                                   |
+|  • Anchored over the 3D desk monitor; teammates remain visible in periphery.      |
+|  • Left Pane: Department-scoped /workspace file tree (services/payment/retry.ts). |
+|  • Center Pane: CodeMirror editor with automatic debounced checkpoint saving      |
+|    ("Saved" indicator — no manual Save button per Principle P7).                  |
+|  • Bottom Action Bar & Streaming Verification Panel:                              |
+|    - [Run Check] (Informal, ungraded check via POST .../run-check)                |
+|    - [Submit for Verification] (Streams per-check results via WS as each completes|
+|      e.g., Diagnostic Check: PASS, Full Fix Check: PASS / FAIL /                  |
+|      RESOURCE_LIMIT_EXCEEDED [SCR-22] styled as a defined outcome, never hung).   |
++-----------------------------------------------------------------------------------+
+```
+*Figure 7.8: `SCR-14` Hybrid Workstation Code Editor Overlay & `SCR-22` Resource-Limit Outcome*
+
+---
+
+## 7.5 SYSTEM RESILIENCE, ERROR & DEBRIEF SCREENS (`SCR-20` TO `SCR-26`)
+
+When the session concludes, or when network/Verification events occur, SimOffice renders the debrief and system state screens (`SCR-19` through `SCR-26`):
+
+```
++----------------------------------------+ +----------------------------------------+
+| [IMAGE PLACEHOLDER — FIGURE 7.10A:     | | [IMAGE PLACEHOLDER — FIGURE 7.10B:     |
+|  SCR-19 TEACHER DEBRIEF & REVEAL FIX]  | |  SCR-20 STUDENT PERSONAL DEBRIEF]      |
+|                                        | |                                        |
+|  • Per-team cards from                 | |  • Scoped to "me" (GET .../debrief/me) |
+|    team_debrief_summary view.          | |  • Displays Code Edits (4), Chat (6),  |
+|  • Non-punitive unresolved copy:       | |    Pings (1), Emotes (2), Verified (2) |
+|    "Found the right file (1/1 diag),   | |  • Conditional "What actually caused   |
+|    didn't reach full fix before time." | |    this" section appears once teacher  |
+|  • Secondary [Reveal Fix] button       | |    triggers Reveal Fix on SCR-19.      |
+|    (POST .../reveal-fix with confirm). | |  • Reserved Phase 1 Badge slots.       |
++----------------------------------------+ +----------------------------------------+
+```
+*Figure 7.10: `SCR-19` Non-Punitive Teacher Debrief ("Reveal Fix") & `SCR-20` Student Personal Debrief*
+
+```
++-----------------------------------------------------------------------------------+
+| [IMAGE PLACEHOLDER — FIGURE 7.11: SYSTEM STATES — SCR-21 VERIFICATION MOMENT,     |
+|  SCR-23 TORN-DOWN STATE, SCR-24 STEPPED-AWAY AVATAR, AND SCR-25 LATE-JOIN HUD]    |
+|                                                                                   |
+|  • SCR-21: In-world prop calms down + captioned confirmation chime on check pass. |
+|  • SCR-23: Plain-language redirect to Debrief (SCR-20) after session teardown.    |
+|  • SCR-24: Dimmed "Stepped Away" avatar state during network drop (seat held).    |
+|  • SCR-25: "Here's what's already happened" late-join banner showing live state.  |
++-----------------------------------------------------------------------------------+
+```
+*Figure 7.11: `SCR-21` Verification Confirmation, `SCR-23` Torn-Down State, `SCR-24` Stepped-Away Avatar & `SCR-25` Late-Join HUD*
+
+---
+
+## 7.6 RESULTS AND DISCUSSION
+
+### 7.6.1 Architectural & Engineering Outcomes
+1. **Complete Specification-to-Code Traceability:** Every Phase 0 requirement in `PRD v3.1/v3.2` has been systematically traced through `TSSD v2.1`, `SAD v1.3/v1.4`, `SSD v1.0`, `DBD v1.1`, `API Spec v1.1`, `TDD v1.1/v1.2`, and `UIUXD v2.1/v2.2` into the concrete repository implementation (`SAHAL-gpp-hub/SimOffice`).
+2. **Database & Type-Safety Verification (`DBD §14`, `TDD §11`):** All 15 PostgreSQL tables, foreign-key `RESTRICT`/`SET NULL` rules, partial indexes, CTE-pre-aggregated views (`team_debrief_summary`, `student_contribution_summary`), and PL/pgSQL retention functions were validated against a live PostgreSQL instance—catching and fixing a multi-table join fan-out bug (`DBD §10`, `§14.4`). Similarly, all core backend state machines and algorithms were validated under `tsc --noEmit` with `strict: true` and `experimentalDecorators: true` (`TDD §11.1`).
+3. **Elimination of the Cost-vs-Security Tradeoff:** By combining Docker Compose, self-hosted PostgreSQL/Valkey, and a narrow-privilege `sandbox-orchestrator` driving `runsc` (or E2B's free tier), SimOffice achieves kernel-isolated, tamper-resistant code execution at **$0–$10/month** instead of the $400–$1,300/month required by managed cloud Kubernetes stacks (`TSSD §7`).
+
+### 7.6.2 Discussion of Design Trade-offs
+* **Injection-Over-Mount Latency vs. Security (`TDD §6.1`):** Launching a second ephemeral container/session for each verification run adds a few hundred milliseconds of startup overhead compared to executing inside the student's running container. However, this trade-off is essential: sharing a container handle or mounting the harness into `/workspace` would allow students to inspect or tamper with the grading check (`PRD §8.5`).
+* **Sequential vs. Parallel Check Execution (`TDD §3.4`):** Formal verification checks for a team run sequentially rather than in parallel so that multiple checks do not compete against the same `ResourceLimits` ceiling (`1 vCPU / 512 MB`) and trigger false-positive `resource_limit_exceeded` outcomes. Streaming each check's result over Colyseus as soon as it finishes preserves immediate user feedback.
+
+---
+
+# CHAPTER 8 — CONCLUSION AND FUTURE WORK
+
+## 8.1 CONCLUSION
+
+The **SimOffice** project successfully designs and implements a browser-based, multiplayer 3D virtual software company for collaborative cybersecurity and debugging education. Undertaken at the Department of IT Engineering, Government Polytechnic Palanpur, this work addresses the fundamental pedagogical and technical shortcomings of traditional static programming exercises: isolation, lack of organizational triage context, vulnerability to client-side test tampering, and resource starvation on shared academic servers.
+
+Through its Phase 0 MVP Pilot implementation (`SAHAL-gpp-hub/SimOffice`), SimOffice demonstrates that playful, *Fall Guys*-inspired spatial embodiment (`Babylon.js 8.x` + `Colyseus 0.17.x`) can be seamlessly unified with rigorous, enterprise-grade backend security (`NestJS` + `PostgreSQL 17.x` + `Valkey 8.x` + `gVisor/E2B`). The system's **Two-Phase Engine Initialization** (`[3D/Entry]` → `[3D/HUD]`), **Diegetic Hybrid Workstation Overlay** (`SCR-14`), **Injection-Over-Mount Trust-Zone Architecture**, **Per-Environment Resource Ceilings** (`1 vCPU / 512 MB / 30s`), **Privacy-First Two-Tier Identity Model** (`WOLF-42` class-scoped passcodes + automated SQL anonymization), and **Non-Punitive Debriefing with Teacher-Triggered "Reveal Fix"** establish a robust, extensible foundation ready for supervised classroom pilot evaluation.
+
+## 8.2 SUMMARY OF TECHNICAL ACHIEVEMENTS
+
+1. **End-to-End Phase 0 Implementation & 15-Document Engineering Suite:** Authored and cross-validated a comprehensive 15-document SDLC suite (`PRD`, `TSSD`, `SAD`, `SSD`, `Compliance Spec`, `DBD`, `API Spec`, `TDD`, `GDD`, `UIUXD`, `AWDD`, `TP`, `Roadmap`, `Effort Estimate`, and `Prompt Library`) alongside the full Phase 0 codebase pushed to GitHub (`main` branch).
+2. **"Injection-Over-Mount" Tamper-Resistant Grading (`PRD §8.5`, `SSD §3`):** Eliminated student test-script tampering by keeping verification harnesses completely outside `/workspace` and injecting them transiently into ephemeral execution contexts against point-in-time workspace snapshots.
+3. **Capacity Isolation via Hard Resource Ceilings (`PRD §8.6`, `SSD §4`):** Protected shared single-VPS pilot infrastructure against infinite loops and fork bombs via `ResourceLimits` (`1 vCPU`, `512 MB RAM`, `30s` wall-clock timeout) surfaced cleanly as `RESOURCE_LIMIT_EXCEEDED`.
+4. **Zero-PII Student Identity & Automated Anonymization (`DBD §3.1`, `§8`):** Engineered persistent class-scoped `roster_entries` authenticated via short human-friendly passcodes (`WOLF-42`) and backed by tested PL/pgSQL functions (`anonymize_roster_entry`, `anonymize_expired_contribution_events`).
+5. **Classroom-Grade Multiplayer Resilience (`PRD §12.13`, `TDD §5`, `§7.2`):** Implemented deterministic synchronous desk-conflict resolution (`sitAtDesk`), seat-preserving unintentional disconnect handling (`connected = false`),server-side edit debouncing (`ContributionEventBuffer`), and a 20-minute abandoned-session auto-teardown sweep.
+
+## 8.3 KNOWN LIMITATIONS & OPEN VALIDATION ITEMS
+
+In keeping with strict engineering transparency (`SSD §15`, `TDD §12`, `UIUXD §13`), the following limitations and open pre-pilot validation items are documented:
+* **E2B Free-Tier Outbound Egress Verification (`SSD §5.4`, `§15 item 1`):** While `GVisorProvider` enforces `--network=none` directly via `sandbox-orchestrator`, confirming whether E2B's free/hobby tier exposes configurable outbound egress allowlists remains an open pre-pilot check.
+* **Pre-Pilot Compliance & Cohort Age Confirmation Gate (`PRD §16.6`, `Compliance Spec v1.0`):** Collecting data from a live classroom cohort is gated on documenting the pilot cohort's age range (18+ adult diploma students vs. minors) and finalizing the institutional Privacy Policy URL (`SimOffice_Compliance_Spec_v1_0.md` §1).
+* **Single-Process Cron Simplification (`TDD §12 item 2`):** Scheduled jobs (`RetentionJob`, `AbandonedSessionSweepJob`) run inside the single `app-server` process via `@nestjs/schedule`; horizontal multi-node scaling in Phase 3 will require distributed locking.
+* **Phase 0 Scope Boundaries (`PRD §5.1`):** Phase 0 intentionally ships with one department (`Backend`), one Beginner logic-bug scenario (`backend-payment-bug-001`), text-only chat, and a 2D teacher dashboard.
+
+## 8.4 FUTURE ENHANCEMENTS (PHASES 1, 2, AND 3)
+
+### 8.4.1 Phase 1 — Multi-Department Core Loop (`PRD §5.3`)
+* Activate the **Frontend Studio**, **DevOps Control Room**, **QA Testing Lab**, and **Conference Room** (all four department rows are already seeded in `DBD §12`).
+* Implement the animated **Elevator / Floor Navigation (`SCR-28`)**, **Scoreboard Wall (`SCR-30`)**, and **Shared Meeting Whiteboard (`SCR-31`)**.
+* Enable multi-department team assignment modes (manual drag-and-drop, student self-select, and one-click auto-balanced assignment) plus intra-department sub-team splitting (`API Spec §12`).
+* Expand the content library to **≥ 15 issue variants** across the four departments and introduce basic XP, badges (`SCR-39`), and hat/outfit cosmetics (`SCR-38`).
+
+### 8.4.2 Phase 2 — Full Incident Realism (`PRD §5.4`)
+* Introduce the **Security Operations Center (SOC — `SCR-33`)** and **Mentor's Office 3D Holo-Table Dashboard (`SCR-34`)** with free-flying **Teacher Spectator Camera (`SCR-35`)** and walkable **Session Timeline Replay (`SCR-36`)**.
+* Add **Security Vulnerability** and **Malicious Script** issue categories (following completion of the Content-Liability Legal Review, `PRD §19`, `§23`) and **Layered Multi-Issue Incidents (`SCR-40`)** utilizing `verification_checks.issue_ordinal`.
+
+### 8.4.3 Phase 3 — Scale, Voice & Multi-Institution Polish (`PRD §5.5`)
+* Integrate **Proximity Voice Chat (`SCR-37`)** paired with mandatory in-room text-channel accessibility equivalents (`PRD §16.5`).
+* Expand the scenario library across all seven domains (Web Dev, AI/ML, Web3, Cloud/DevOps, Mobile Backend, IoT, Internal Tools) and add the persistent lobby **Company Wall of Fame**.
+* Exercise the **Production Seams (`SAD §17`, `TSSD §9`)**: migrate from single-VPS Docker Compose to multi-node **GKE Kubernetes** with dedicated gVisor node pools, managed Cloud SQL/Memorystore, and enterprise **Auth0 SSO** for multi-institution deployments.
+
+## 8.5 FINAL REMARKS
+
+SimOffice demonstrates that educational software does not have to choose between engaging, game-like social presence and rigorous, production-grade security engineering. By grounding an imaginative 3D multiplayer workplace in a verifiable, zero-trust sandbox architecture and a $0–$10/month campus-ready deployment model, SimOffice provides a practical, scalable blueprint for the next generation of collaborative technical laboratories.
+
+---
+
+# REFERENCES
+
+1. Babylon.js Team. (2025). *Babylon.js 8.0 documentation: WebGL/WebGPU 3D engine, physics, and character controllers*. Microsoft Open Source. https://doc.babylonjs.com/
+2. Colyseus. (2025). *Colyseus 0.17 documentation: Authoritative multiplayer game server and state synchronization for Node.js*. https://docs.colyseus.io/
+3. Docker Inc. (2025). *Docker Compose specification and container runtime security documentation*. https://docs.docker.com/compose/
+4. E2B. (2025). *E2B documentation: Secure Firecracker microVM sandboxes for AI and untrusted code execution*. https://e2b.dev/docs
+5. Google. (2025). *gVisor (`runsc`) container runtime documentation: Application kernel for containers*. https://gvisor.dev/docs/
+6. Government Polytechnic Palanpur. (2025). *Department of Information Technology Engineering: Academic project report guidelines and formatting standards*. Palanpur, Gujarat, India.
+7. Halpern, D., & Hakel, M. D. (2003). Applying the science of learning to the university and beyond: Teaching for long-term retention and transfer. *Change: The Magazine of Higher Learning*, 35(4), 36–41.
+8. IETF. (2015). *JSON Web Token (JWT) (RFC 7519)*. Internet Engineering Task Force. https://datatracker.ietf.org/doc/html/rfc7519
+9. Kamil Mysliwiec & NestJS Team. (2025). *NestJS documentation: A progressive Node.js framework for building efficient and scalable server-side applications*. https://docs.nestjs.com/
+10. Meta Open Source. (2025). *React 19 documentation: User interfaces and concurrent rendering*. https://react.dev/
+11. Nginx Inc. (2025). *Nginx HTTP and WebSocket reverse proxy documentation*. https://nginx.org/en/docs/
+12. Open Web Application Security Project (OWASP). (2024). *OWASP Top Ten Web Application Security Risks & Secure Coding Practices*. https://owasp.org/
+13. PostgreSQL Global Development Group. (2025). *PostgreSQL 17 documentation: DDL, JSONB, CTEs, and PL/pgSQL procedural language*. https://www.postgresql.org/docs/17/
+14. Pressman, R. S., & Maxim, B. R. (2020). *Software engineering: A practitioner's approach* (9th ed.). McGraw-Hill Education.
+15. Provos, N., & Mazières, D. (1999). A future-adaptable password scheme. In *Proceedings of the USENIX Annual Technical Conference* (pp. 81–91). USENIX Association.
+16. Sommerville, I. (2016). *Software engineering* (10th ed.). Pearson Education Limited.
+17. Valkey Contributors. (2025). *Valkey 8.0 documentation: High-performance key-value datastore*. Linux Foundation. https://valkey.io/
+18. W3C. (2023). *Web Content Accessibility Guidelines (WCAG) 2.2*. World Wide Web Consortium. https://www.w3.org/TR/WCAG22/
+
+---
+
+# APPENDIX A — INSTALLATION, SETUP & DOCKER DEPLOYMENT GUIDE
+
+## A.1 Prerequisites
+Before deploying the SimOffice Phase 0 Pilot stack on a Linux VPS (minimum 4 GB RAM, 2 vCPUs recommended per `TSSD v2.1 §5.1`) or an on-campus lab machine, ensure the following software is installed:
+* **Docker Engine** (v26.0+) and **Docker Compose Plugin** (`docker compose` v2.24+)
+* **Node.js** (v24 LTS) and **npm** (v10+) for local development/testing
+* **gVisor (`runsc`) Runtime** (if running the self-hosted `GVisorProvider` path) OR an **E2B API Key** (if running the `E2BProvider` path)
+* **Git** (v2.40+)
+
+## A.2 Step-by-Step Installation
+```bash
+# 1. Clone the SimOffice repository from GitHub
+git clone https://github.com/SAHAL-gpp-hub/SimOffice.git
+cd SimOffice
+
+# 2. Create the environment configuration file from the template
+cp .env.example .env
+
+# 3. Configure required secrets in .env (never commit .env to Git)
+#    - POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+#    - JWT_SECRET (minimum 32-byte random hex string for HS256 signing)
+#    - SANDBOX_PROVIDER=gvisor   # or 'e2b'
+#    - E2B_API_KEY=...           # required only if SANDBOX_PROVIDER=e2b
+#    - SENTRY_DSN=...            # optional free-tier error tracking
+
+# 4. (If using GVisorProvider) Verify runsc is registered in /etc/docker/daemon.json:
+#    { "runtimes": { "runsc": { "path": "/usr/local/bin/runsc" } } }
+#    sudo systemctl restart docker
+
+# 5. Build and launch the complete Docker Compose stack
+docker compose up -d --build
+
+# 6. Verify that all 5 containers are healthy and only nginx:443 is exposed
+docker compose ps
+```
+
+## A.3 Database Initialization & Seed Verification
+On first launch, the `postgres` container automatically executes `./db/init.sql` (containing the 15-table DDL, views, retention functions, and the 4 seed rows in `departments`). To verify manually:
+```bash
+docker compose exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT code, display_name FROM departments;"
+```
+
+## A.4 Scheduled Backup Discipline (`TSSD v2.1 §5.2`)
+Even at single-college pilot scale, configure a daily `pg_dump` cron job on the host before and after lab sessions:
+```bash
+# Add to host crontab (crontab -e) for daily 02:30 backup:
+30 2 * * * docker compose -f /opt/simoffice/docker-compose.yml exec -T postgres pg_dump -U simoffice simoffice_db | gzip > /opt/simoffice/backups/simoffice_$(date +\%F).sql.gz
+```
+
+---
+
+# APPENDIX B — POSTGRESQL DATABASE SCHEMA (FULL DDL, VIEWS & RETENTION SQL)
+
+The following SQL schema is reproduced directly from the validated **Database Design Document (`DBD v1.1 §6, §8, §10, §12`)**:
+
+```sql
+-- ============================================================================
+-- SimOffice — Database Schema (Pilot Edition, DBD v1.1)
+-- Target: PostgreSQL 17.x
+-- ============================================================================
+
+CREATE EXTENSION IF NOT EXISTS citext;
+
+-- 1. DEPARTMENTS
+CREATE TABLE departments (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code            TEXT NOT NULL UNIQUE,          -- 'frontend' | 'backend' | 'devops' | 'qa'
+    display_name    TEXT NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- 2. ACCOUNTS (Teachers / Admins)
+CREATE TABLE accounts (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    role            TEXT NOT NULL DEFAULT 'teacher' CHECK (role IN ('teacher', 'admin')),
+    email           CITEXT NOT NULL UNIQUE,
+    password_hash   TEXT NOT NULL,
+    display_name    TEXT NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deactivated_at  TIMESTAMPTZ NULL
+);
+
+-- 3. CLASSES
+CREATE TABLE classes (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    teacher_account_id  UUID NOT NULL REFERENCES accounts(id) ON DELETE RESTRICT,
+    name                TEXT NOT NULL,
+    term_label          TEXT NULL,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    archived_at         TIMESTAMPTZ NULL
+);
+CREATE INDEX idx_classes_teacher_account_id ON classes(teacher_account_id);
+
+-- 4. ROSTER_ENTRIES (Persistent class-scoped student identity + appearance JSONB)
+CREATE TABLE roster_entries (
+    id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    class_id             UUID NOT NULL REFERENCES classes(id) ON DELETE RESTRICT,
+    display_name         TEXT NOT NULL,
+    roster_passcode_hash TEXT NOT NULL,
+    appearance           JSONB NOT NULL DEFAULT '{}'::jsonb,
+    is_anonymized        BOOLEAN NOT NULL DEFAULT false,
+    anonymized_at        TIMESTAMPTZ NULL,
+    created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+    last_seen_at         TIMESTAMPTZ NULL
+);
+CREATE INDEX idx_roster_entries_class_id ON roster_entries(class_id);
+
+-- 5. SCENARIOS
+CREATE TABLE scenarios (
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title                   TEXT NOT NULL,
+    domain                  TEXT NOT NULL,
+    departmental_shape      TEXT NOT NULL CHECK (departmental_shape IN ('full_stack', 'specialist')),
+    fix_baseline_repo_ref   TEXT NOT NULL,
+    manifest_source_ref     TEXT NULL,
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- 6. SCENARIO_DEPARTMENTS
+CREATE TABLE scenario_departments (
+    scenario_id     UUID NOT NULL REFERENCES scenarios(id) ON DELETE CASCADE,
+    department_id   UUID NOT NULL REFERENCES departments(id) ON DELETE RESTRICT,
+    PRIMARY KEY (scenario_id, department_id)
+);
+
+-- 7. SCENARIO_VARIANTS
+CREATE TABLE scenario_variants (
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    scenario_id             UUID NOT NULL REFERENCES scenarios(id) ON DELETE RESTRICT,
+    difficulty              TEXT NOT NULL CHECK (difficulty IN ('beginner', 'intermediate', 'advanced')),
+    category                TEXT NOT NULL CHECK (category IN ('logic_bug', 'security_vulnerability', 'malicious_script', 'misconfiguration')),
+    issue_repo_ref          TEXT NOT NULL,
+    briefing_text           TEXT NOT NULL,
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_scenario_variants_scenario_id ON scenario_variants(scenario_id);
+CREATE INDEX idx_scenario_variants_difficulty_category ON scenario_variants(difficulty, category);
+
+-- 8. VERIFICATION_CHECKS
+CREATE TABLE verification_checks (
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    scenario_variant_id     UUID NOT NULL REFERENCES scenario_variants(id) ON DELETE RESTRICT,
+    check_type              TEXT NOT NULL CHECK (check_type IN ('full_fix', 'diagnostic')),
+    check_key               TEXT NOT NULL,
+    issue_ordinal           INT NULL,
+    harness_ref             TEXT NOT NULL,
+    description             TEXT NOT NULL,
+    sort_order              INT NOT NULL DEFAULT 0,
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (scenario_variant_id, check_key)
+);
+CREATE INDEX idx_verification_checks_variant_id ON verification_checks(scenario_variant_id);
+
+-- 9. SESSIONS
+CREATE TABLE sessions (
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    class_id                UUID NOT NULL REFERENCES classes(id) ON DELETE RESTRICT,
+    scenario_variant_id     UUID NOT NULL REFERENCES scenario_variants(id) ON DELETE RESTRICT,
+    join_code               VARCHAR(8) NOT NULL,
+    department_mode         TEXT NOT NULL DEFAULT 'single_department' CHECK (department_mode IN ('single_department', 'multi_department')),
+    status                  TEXT NOT NULL DEFAULT 'created' CHECK (status IN ('created', 'provisioning', 'active', 'ended', 'debriefed', 'torn_down')),
+    end_reason              TEXT NULL CHECK (end_reason IN ('time_limit_reached', 'teacher_ended_early', 'all_teams_resolved', 'abandoned_timeout')),
+    time_limit_minutes      INT NOT NULL,
+    max_roster_size         INT NULL,
+    config                  JSONB NOT NULL DEFAULT '{}'::jsonb,
+    cloned_from_session_id  UUID NULL REFERENCES sessions(id) ON DELETE SET NULL,
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+    started_at              TIMESTAMPTZ NULL,
+    ended_at                TIMESTAMPTZ NULL
+);
+CREATE INDEX idx_sessions_class_id ON sessions(class_id);
+CREATE INDEX idx_sessions_scenario_variant_id ON sessions(scenario_variant_id);
+CREATE INDEX idx_sessions_status ON sessions(status) WHERE status NOT IN ('torn_down');
+CREATE UNIQUE INDEX idx_sessions_join_code_active ON sessions(join_code) WHERE status NOT IN ('ended');
+
+-- 10. TEAMS
+CREATE TABLE teams (
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id              UUID NOT NULL REFERENCES sessions(id) ON DELETE RESTRICT,
+    department_id           UUID NOT NULL REFERENCES departments(id) ON DELETE RESTRICT,
+    label                   TEXT NOT NULL,
+    outcome_state           TEXT NOT NULL DEFAULT 'in_progress' CHECK (outcome_state IN ('in_progress', 'resolved', 'unresolved')),
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_teams_session_id ON teams(session_id);
+CREATE INDEX idx_teams_department_id ON teams(department_id);
+
+-- 11. TEAM_MEMBERSHIPS
+CREATE TABLE team_memberships (
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    team_id                 UUID NOT NULL REFERENCES teams(id) ON DELETE RESTRICT,
+    roster_entry_id         UUID NOT NULL REFERENCES roster_entries(id) ON DELETE RESTRICT,
+    joined_at               TIMESTAMPTZ NOT NULL DEFAULT now(),
+    left_at                 TIMESTAMPTZ NULL,
+    UNIQUE (team_id, roster_entry_id)
+);
+CREATE INDEX idx_team_memberships_team_id ON team_memberships(team_id);
+CREATE INDEX idx_team_memberships_roster_entry_id ON team_memberships(roster_entry_id);
+
+-- 12. ENVIRONMENT_INSTANCES
+CREATE TABLE environment_instances (
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    team_id                 UUID NOT NULL UNIQUE REFERENCES teams(id) ON DELETE RESTRICT,
+    sandbox_provider        TEXT NOT NULL CHECK (sandbox_provider IN ('e2b', 'gvisor')),
+    provider_ref            TEXT NOT NULL,
+    status                  TEXT NOT NULL DEFAULT 'provisioning' CHECK (status IN ('provisioning', 'ready', 'error', 'torn_down')),
+    resource_limits         JSONB NOT NULL,
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+    torn_down_at            TIMESTAMPTZ NULL
+);
+CREATE INDEX idx_environment_instances_status ON environment_instances(status) WHERE status <> 'torn_down';
+
+-- 13. VERIFICATION_RUNS
+CREATE TABLE verification_runs (
+    id                           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    team_id                      UUID NOT NULL REFERENCES teams(id) ON DELETE RESTRICT,
+    verification_check_id        UUID NOT NULL REFERENCES verification_checks(id) ON DELETE RESTRICT,
+    triggered_by_roster_entry_id UUID NULL REFERENCES roster_entries(id) ON DELETE SET NULL,
+    result                       TEXT NOT NULL CHECK (result IN ('pass', 'fail', 'resource_limit_exceeded', 'error')),
+    diagnostic_details           JSONB NOT NULL DEFAULT '{}'::jsonb,
+    ran_at                       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_verification_runs_team_id ON verification_runs(team_id);
+CREATE INDEX idx_verification_runs_check_id ON verification_runs(verification_check_id);
+
+-- 14. CONTRIBUTION_EVENTS
+CREATE TABLE contribution_events (
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id              UUID NOT NULL REFERENCES sessions(id) ON DELETE RESTRICT,
+    team_id                 UUID NOT NULL REFERENCES teams(id) ON DELETE RESTRICT,
+    roster_entry_id         UUID NULL REFERENCES roster_entries(id) ON DELETE SET NULL,
+    event_type              TEXT NOT NULL CHECK (event_type IN ('session_joined', 'session_left', 'desk_seated', 'desk_stood', 'code_edit_saved', 'check_run_triggered', 'ping_sent', 'emote_used', 'chat_message_sent')),
+    metadata                JSONB NOT NULL DEFAULT '{}'::jsonb,
+    occurred_at             TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_contribution_events_session_id ON contribution_events(session_id);
+CREATE INDEX idx_contribution_events_team_id ON contribution_events(team_id);
+CREATE INDEX idx_contribution_events_roster_entry_id ON contribution_events(roster_entry_id);
+CREATE INDEX idx_contribution_events_retention ON contribution_events(occurred_at) WHERE roster_entry_id IS NOT NULL;
+
+-- SEED DATA (DBD §12)
+INSERT INTO departments (code, display_name) VALUES
+  ('frontend', 'Frontend Studio'),
+  ('backend', 'Backend Engine Room'),
+  ('devops', 'DevOps Control Room'),
+  ('qa', 'QA Testing Lab');
+
+-- RETENTION & ANONYMIZATION FUNCTIONS (DBD §8)
+CREATE OR REPLACE FUNCTION anonymize_expired_contribution_events(retention_days INT DEFAULT 180)
+RETURNS INT AS $$
+DECLARE affected INT;
+BEGIN
+    UPDATE contribution_events
+       SET roster_entry_id = NULL
+     WHERE roster_entry_id IS NOT NULL
+       AND occurred_at < now() - make_interval(days => retention_days);
+    GET DIAGNOSTICS affected = ROW_COUNT;
+    RETURN affected;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION anonymize_roster_entry(target_roster_entry_id UUID)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE roster_entries
+       SET display_name = 'Deleted Student',
+           roster_passcode_hash = 'invalidated',
+           is_anonymized = true,
+           anonymized_at = now()
+     WHERE id = target_roster_entry_id;
+    UPDATE contribution_events SET roster_entry_id = NULL WHERE roster_entry_id = target_roster_entry_id;
+    UPDATE verification_runs SET triggered_by_roster_entry_id = NULL WHERE triggered_by_roster_entry_id = target_roster_entry_id;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+---
+
+# APPENDIX C — TROUBLESHOOTING GUIDE
+
+## C.1 Student Receives `409 ENVIRONMENT_NOT_READY` When Clicking a Workstation
+* **Cause:** The session is still in the `created` (Lobby) or `provisioning` state (`API Spec §5.1`, `§7.1`). Students are allowed to enter the lobby, walk around, and chat as soon as the session is created, but workstations remain locked until the teacher starts the session.
+* **Solution:** Instruct the teacher to click **Start Session** on `SCR-05` (`POST /api/v1/sessions/{sessionId}/start`) and wait for the status indicator to transition from `provisioning` to `active`.
+
+## C.2 Student Receives `401 INVALID_ROSTER_PASSCODE` on Session Join
+* **Cause:** The student entered a `rosterPasscode` (e.g., `WOLF-42`) that either contains a typo or belongs to a different `class_id` (`API Spec §3.2`).
+* **Solution:** Verify the passcode spelling. If the student has permanently lost their passcode, they should leave the **Roster Passcode** field **blank** on `SCR-06` to join as a fresh roster entry (`API Spec §3.2`).
+
+## C.3 Student Receives `409 SESSION_ROSTER_FULL`
+* **Cause:** A **new** student (omitting `rosterPasscode`) attempted to join a session whose distinct roster count has already reached `max_roster_size` (`API Spec §3.2`, `§14.5`).
+* **Solution:** If the student was already in the session and got disconnected, they must enter their echoed `rosterPasscode`—returning students are exempt from the roster cap. Otherwise, the teacher can increase `maxRosterSize` if the session is still in `created` status (`PATCH /api/v1/sessions/{id}`).
+
+## C.4 `502 PROVISIONING_FAILED` When Starting a Session (`GVisorProvider`)
+* **Cause:** `sandbox-orchestrator` could not launch the `runsc` container after 1 automatic retry (`TDD §10`). Usually caused by `/var/run/docker.sock` permission issues or `runsc` not being registered in `/etc/docker/daemon.json`.
+* **Solution:** Check `docker compose logs sandbox-orchestrator`. Verify `docker run --runtime=runsc hello-world` succeeds on the host.
+
+## C.5 Colyseus Schema Compilation Fails with TypeScript Decorator Errors
+* **Cause:** `@colyseus/schema`'s `@type()` decorators require legacy TypeScript experimental decorators (`TDD §11 item 1`).
+* **Solution:** Ensure `"experimentalDecorators": true` and `"emitDecoratorMetadata": true` are enabled in `server/tsconfig.json`.
+
+## C.6 3D Building Exterior (`SCR-00`) Fails to Render on Old Lab PC
+* **Cause:** WebGL is disabled in the browser or unsupported by the GPU driver (`PRD §10.4`, `TDD §9.1`).
+* **Solution:** SimOffice automatically falls back to `WebGL-unavailable` mode (`webglUnavailable: true` in Zustand), rendering a static building image and a 2D access card. To restore full 3D, enable **"Use graphics acceleration when available"** in Chrome Settings (`chrome://settings/system`).
+
+---
+
+# APPENDIX D — REST API & WEBSOCKET ENDPOINT REFERENCE
+
+All REST endpoints are prefixed with `/api/v1` (`API Spec v1.1`):
+
+* **`POST /auth/login`** — Authenticates a Teacher (`email`, `password`) and returns a long-lived HS256 JWT (`role: "teacher"`). Rate-limited to 5 req/min/IP.
+* **`POST /sessions/join`** — Authenticates/registers a Student (`joinCode`, `displayName`, optional `rosterPasscode`). Returns `200` (returning) or `201` (new) with `rosterEntryId`, `rosterPasscode` (`WOLF-42`), `appearance` JSONB, short-lived `token`, and `wsRoomUrl`. Rate-limited to 10 req/min/IP.
+* **`DELETE /classes/{classId}/roster/{rosterEntryId}`** — Anonymizes a student's `roster_entries` row in-place (`anonymize_roster_entry`) and strips attribution across history tables.
+* **`POST /classes` | `GET /classes` | `PATCH /classes/{classId}` | `GET /classes/{classId}/roster` | `GET /classes/{classId}/sessions`** — Teacher class and roster management endpoints.
+* **`POST /sessions` | `PATCH /sessions/{sessionId}` | `POST /sessions/{sessionId}/clone` | `POST /sessions/{sessionId}/start` | `GET /sessions/{sessionId}` | `POST /sessions/{sessionId}/announcements` | `POST /sessions/{sessionId}/end`** — Complete session lifecycle, no-repeat variant selection, provisioning, live announcement broadcast, and unconditional teardown endpoints.
+* **`GET /scenarios` | `GET /scenarios/{scenarioId}`** — Content library browsing endpoints filtered by `domain`, `departmentalShape`, and `difficulty`.
+* **`GET /teams/{teamId}/workstation/files` | `GET .../files/{path}` | `PUT .../files/{path}` | `POST .../run-check` | `POST .../submit-verification`** — Team-scoped workstation file operations, debounced auto-save checkpoints, informal checks, and tamper-resistant ephemeral verification runs.
+* **`GET /sessions/{sessionId}/dashboard` | `POST /sessions/{sessionId}/teams/{teamId}/hint`** — Teacher live monitoring (combining DB views + in-memory Colyseus state) and targeted hint delivery.
+* **`GET /sessions/{sessionId}/debrief` | `POST /sessions/{sessionId}/teams/{teamId}/reveal-fix` | `GET /sessions/{sessionId}/debrief/me`** — Post-session teacher summary, teacher-triggered root-cause reveal, and student `"me"`-scoped personal contribution summary.
+* **`PATCH /roster-entries/{rosterEntryId}/character`** — Persists student character `appearance` JSONB across sessions.
+* **Colyseus WebSocket Room (`team-${teamId}`):** Client methods: `move`, `sitAtDesk`, `standUp`, `sendChat`, `sendPing`, `useEmote`. Server broadcasts: `verificationResult`, `environmentError`, `announcementPosted`, `hintReceived`, `sessionEnded`.
+
+---
+
+# APPENDIX E — USER MANUAL
+
+## E.1 Teacher Operational Guide ("Mentor Priya")
+1. **Sign In (`SCR-00` / `SCR-01`):** Open `https://<campus-host>/teacher`. Enter your institutional email and password into the floating "Administration Access — Staff Login" panel.
+2. **Create a Class (`SCR-02`):** Click **Create Class**, enter the course name (e.g., *"Diploma IT Sem 6 — Lab A"*), and save.
+3. **Configure & Create a Session (`SCR-04`):** Select your class and click **New Session**. Choose a Scenario (or let SimOffice auto-select an unused variant), set the Time Limit and Max Roster Size, and click **Create Session**.
+4. **Manage Lobby & Start (`SCR-05`):** Share the 6-character **Join Code** (e.g., `AB3XQ9`) on the projector. Watch students appear in the live lobby roster as they join and customize their characters. Click **Start Session** to provision the isolated team sandbox(es) and post the Mission Briefing.
+5. **Monitor, Hint & End (`SCR-15` to `SCR-18`):** Use the Live Dashboard to see which students are seated at which desks and which diagnostic or full-fix checks have passed. Use **Send Hint** (`SCR-16`) or **Push Announcement** (`SCR-17`) to guide stuck teams. Click **End Session** (`SCR-18`) when time is up.
+6. **Review Debrief & Reveal Fix (`SCR-19`):** Review each team's outcome. For any `unresolved` team, click **Reveal Fix** to unlock the root-cause explanation on their personal debrief screens as a teaching moment.
+
+## E.2 Student Operational Guide ("Student Rahul")
+1. **Join Session (`SCR-00` / `SCR-06`):** Open `https://<campus-host>/`. Enter the 6-character **Join Code** from your teacher and your **Display Name**. If you have joined this class before, enter your saved **Roster Passcode** (e.g., `WOLF-42`); otherwise leave it blank to receive a new one.
+2. **Customize Character & Complete Onboarding (`SCR-07` / `SCR-08`):** On your first session, pick your avatar color/pattern and save your echoed `WOLF-42` passcode. Walk and jump through the short onboarding corridor using `W/A/S/D`, `Space`, and `E`.
+3. **Read the Briefing & Collaborate (`SCR-10`, `SCR-12`, `SCR-13`):** Check the Notice Board (`SCR-10`) in the Backend Engine Room to read the reported customer symptom. Use Department Chat (`SCR-12`) and Pings (`SCR-13`) to coordinate with teammates.
+4. **Debug & Verify at a Workstation (`SCR-14`):** Walk up to an empty desk and press `E` to sit down. Browse `/workspace` files in the monitor overlay, edit the code (changes auto-save automatically), click **Run Check** to test your hypothesis, and click **Submit for Verification** once the defect is fixed.
+5. **View Personal Debrief (`SCR-20`):** When the session ends, review your personal contribution card (edits, chats, pings, verified checks) and any root-cause explanation revealed by your teacher.
+
+---
+
+# APPENDIX F — GLOSSARY OF TECHNICAL TERMS
+
+* **Diegetic UI:** User interface elements that exist within the fictional 3D game world (such as wall-mounted notice boards or desk monitors) rather than disconnected browser popups (`PRD §16.1`, `SAD §12`).
+* **Ephemeral Verification Context:** A brand-new, short-lived container (`runsc`) or microVM session (`E2B`) created solely for the duration of a single `runVerification` call and destroyed immediately afterward in a `try/finally` block (`SSD §3.4`, `TDD §6`).
+* **Fix Attribution:** The retrospective read-time algorithm (`computeFixAttribution`, `TDD §3.5`) that correlates `code_edit_saved` timestamps against a passing `verification_runs` timestamp to attribute root-cause resolution.
+* **Injection-Over-Mount:** SimOffice's core security principle where the grading test harness is never mounted in the student-writable `/workspace` directory, but is injected transiently by the server into a separate execution context against a snapshot of the student's code (`SAD §7.2`, `SSD §3.1`).
+* **Production Seam:** An intentional architectural boundary designed so that a lightweight single-college pilot component (e.g., Docker Compose, self-rolled JWT, `GVisorProvider`) can be upgraded to a multi-institution production service (GKE Kubernetes, Auth0, Cloud SQL) without rewriting application logic (`TSSD §9`, `SAD §17`).
+* **Resource Ceiling:** Hard CPU (`1 vCPU`), memory (`512 MB`), and wall-clock (`30s`) limits enforced on every student sandbox so runaway loops or fork bombs cannot starve shared host infrastructure (`PRD §8.6`, `SSD §4`).
+* **Roster Entry (`roster_entries`):** A persistent, class-scoped, credential-free student identity authenticated via a short human-friendly passcode (`WOLF-42`) that preserves avatar appearance and session history across a semester without collecting student PII (`DBD §3.1`, `§3.5`).
+* **`runsc` (gVisor):** Google's open-source container runtime that implements an application kernel in user space, intercepting guest system calls to provide VM-grade kernel isolation without full hardware virtualization overhead (`SSD §17`).
+
+---
+---

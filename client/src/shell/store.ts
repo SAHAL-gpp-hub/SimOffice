@@ -46,8 +46,9 @@ interface ShellState {
     isOpen: boolean;
     teamId: string | null;
     token: string | null;
+    department: 'backend' | 'frontend';
   };
-  openWorkstation: (teamId: string, token: string) => void;
+  openWorkstation: (teamId: string, token: string, department?: 'backend' | 'frontend') => void;
   closeWorkstation: () => void;
 
   // ── Chat (SCR-12) ─────────────────────────────────────────────────────────
@@ -64,8 +65,16 @@ export const useShellStore = create<ShellState>((set) => ({
   finalAppearance: null,
   debriefUrl: null,
 
-  enterCharacterCreation: (result) =>
-    set({ screen: 'character-creation', joinResult: result }),
+  enterCharacterCreation: (result) => {
+    const finalAppearance = (result.appearance && Object.keys(result.appearance).length > 0)
+      ? (result.appearance as { colorScheme: string })
+      : { colorScheme: 'default' };
+    set({
+      screen: 'in-world',
+      joinResult: { ...result, appearance: finalAppearance },
+      finalAppearance,
+    });
+  },
 
   enterWorld: (appearance) =>
     set({ screen: 'in-world', finalAppearance: appearance }),
@@ -81,7 +90,7 @@ export const useShellStore = create<ShellState>((set) => ({
     // Note: Externalize session state to workstation store if needed
     set({
       screen: 'teacher-dashboard',
-      workstation: { isOpen: false, teamId: sessionId, token },
+      workstation: { isOpen: false, teamId: sessionId, token, department: 'backend' },
     });
   },
 
@@ -95,7 +104,7 @@ export const useShellStore = create<ShellState>((set) => ({
       joinResult: null,
       finalAppearance: null,
       debriefUrl: null,
-      workstation: { isOpen: false, teamId: null, token: null },
+      workstation: { isOpen: false, teamId: null, token: null, department: 'backend' },
     }),
 
   // ── Workstation ──────────────────────────────────────────────────────────
@@ -103,13 +112,14 @@ export const useShellStore = create<ShellState>((set) => ({
     isOpen: false,
     teamId: null,
     token: null,
+    department: 'backend',
   },
 
-  openWorkstation: (teamId, token) =>
-    set({ workstation: { isOpen: true, teamId, token } }),
+  openWorkstation: (teamId, token, department: 'backend' | 'frontend' = 'backend') =>
+    set({ workstation: { isOpen: true, teamId, token, department } }),
 
   closeWorkstation: () =>
-    set({ workstation: { isOpen: false, teamId: null, token: null } }),
+    set((s) => ({ workstation: { isOpen: false, teamId: null, token: null, department: s.workstation.department } })),
 
   // ── Chat ─────────────────────────────────────────────────────────────────
   chat: {

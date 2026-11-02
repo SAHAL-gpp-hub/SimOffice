@@ -5,6 +5,9 @@ import { registerEngineCallbacks, registerEngineInitializer, notifySit, notifySt
 import { COLOR_SCHEMES } from './shell/appearanceCatalog';
 import { useShellStore } from './shell/store';
 
+// Expose store and engine objects for testing, screenshots, and automation
+(window as any).__useShellStore = useShellStore;
+
 // Mount the React shell immediately so the UI is always accessible
 const rootEl = document.getElementById('shell-root');
 if (rootEl) {
@@ -24,6 +27,8 @@ if (isTeacherUrl) {
 // Just-in-Time Babylon.js 3D engine initializer (deferred until post-login/simulation entry)
 let engineInitialized = false;
 
+(window as any).__initBabylonEngine = initBabylonEngine;
+
 async function initBabylonEngine(): Promise<void> {
     if (engineInitialized) return;
     engineInitialized = true;
@@ -37,7 +42,8 @@ async function initBabylonEngine(): Promise<void> {
     }
 
     try {
-        const { Engine, Scene, Vector3, HemisphericLight, Color4 } = await import('@babylonjs/core');
+        const { Engine, Scene, Vector3, HemisphericLight, Color4, MeshBuilder, StandardMaterial, Color3, DynamicTexture, Mesh } = await import('@babylonjs/core');
+        (window as any).BABYLON = { Engine, Scene, Vector3, HemisphericLight, Color4, MeshBuilder, StandardMaterial, Color3, DynamicTexture, Mesh };
         await import('@babylonjs/loaders');
         const { buildScene } = await import('./sceneBuilder');
         const { CharacterController } = await import('./characterController');
@@ -45,8 +51,11 @@ async function initBabylonEngine(): Promise<void> {
         if (!canvas) return;
 
         const engine = new Engine(canvas, true, {
-            adaptToDeviceRatio: true,
+            adaptToDeviceRatio: false, // Technique #10: Avoid unconstrained 2x/3x Retina rendering
         });
+        // Cap devicePixelRatio to 1.25 for crisp text/textures with a ~60% reduction in fill-rate pixels
+        const targetDpr = Math.min(window.devicePixelRatio || 1, 1.25);
+        engine.setHardwareScalingLevel(1 / targetDpr);
         engine.disableUniformBuffers = true;
         engine.renderEvenInBackground = true;
 
@@ -63,6 +72,29 @@ async function initBabylonEngine(): Promise<void> {
         await controller.init();
 
         scene.metadata = { ...scene.metadata, controller };
+        (window as any).__controller = controller;
+        (window as any).__setMouseSensitivity = (mult: number) => controller.setSensitivity(mult);
+
+        // Technique #10: Dynamic Adaptive Resolution Supervisor
+        let frameCount = 0;
+        let lastFpsCheck = performance.now();
+        scene.onAfterRenderObservable.add(() => {
+            frameCount++;
+            const now = performance.now();
+            if (now - lastFpsCheck >= 2000) {
+                const fps = (frameCount * 1000) / (now - lastFpsCheck);
+                frameCount = 0;
+                lastFpsCheck = now;
+                const currentScaling = engine.getHardwareScalingLevel();
+                if (fps < 32 && currentScaling < 1.6) {
+                    // Under heavy load: reduce resolution dynamically to protect interactive framerate
+                    engine.setHardwareScalingLevel(Math.min(1.6, currentScaling + 0.15));
+                } else if (fps > 55 && currentScaling > 1 / targetDpr) {
+                    // Solid 60 FPS: restore crisp scaling
+                    engine.setHardwareScalingLevel(Math.max(1 / targetDpr, currentScaling - 0.05));
+                }
+            }
+        });
 
         engine.runRenderLoop(() => {
             scene.render();
@@ -116,14 +148,20 @@ async function initBabylonEngine(): Promise<void> {
             }
         );
 
-        controller.onSit = () => {
-            const jr = useShellStore.getState().joinResult;
-            if (!jr?.teamId || !jr?.token) {
-                console.warn('[WorkstationOverlay] onSit fired before joinResult — ignoring');
+        controller.onSit = (trigger) => {
+            // Only open code editor workstation overlay if this is an engineering workstation desk
+            if (trigger && !trigger.id.startsWith('sit_ws_') && !trigger.id.startsWith('sit_eng_')) {
+                console.log(`[Interaction] Seated on lounge furniture (${trigger.id})`);
                 return;
             }
+            const jr = useShellStore.getState().joinResult;
+            const teamId = jr?.teamId || sessionStorage.getItem('studentTeamId') || '99528558-6ca8-428b-846b-0ee162c11a4f';
+            const token = jr?.token || sessionStorage.getItem('studentToken') || 'dev-token';
+
+            const department = (trigger?.id.startsWith('sit_ws_fe_') || trigger?.id.includes('_fe_')) ? 'frontend' : 'backend';
+
             controller.setControlsActive(false);
-            useShellStore.getState().openWorkstation(jr.teamId, jr.token);
+            useShellStore.getState().openWorkstation(teamId, token, department);
             notifySit();
         };
 
@@ -131,6 +169,12 @@ async function initBabylonEngine(): Promise<void> {
             useShellStore.getState().closeWorkstation();
             notifyStand();
             controller.setControlsActive(true);
+        };
+
+        controller.onElevator = (trigger) => {
+            if (env.elevatorManager) {
+                env.elevatorManager.handleTrigger(trigger, controller);
+            }
         };
 
         registerSitCallback(() => {});

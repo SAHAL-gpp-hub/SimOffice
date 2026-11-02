@@ -1,0 +1,11 @@
+{
+  "name": "omnicart-storefront-ui",
+  "version": "1.0.0",
+  "description": "OmniCart e-commerce frontend application and cart drawer state",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node verification/check.js",
+    "check": "node verification/check.js"
+  },
+  "dependencies": {}
+}

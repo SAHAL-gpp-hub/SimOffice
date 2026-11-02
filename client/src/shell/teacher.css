@@ -1,0 +1,1418 @@
+/**
+ * SimOffice Teacher Console — Cybernetic Aerospace Mission Operations Stylesheet
+ * 
+ * Deep Obsidian Void Canvas, Multi-Layered Frosted Liquid Glassmorphism,
+ * Luminous Electric Cyan & Quantum Mint Telemetry, and Tactile Command Ergonomics.
+ * Perfectly calibrated to match the 3D SimOffice Simulation World.
+ */
+
+:root {
+  /* ── 1. Void Canvas & Layer Foundations ── */
+  --tc-canvas: #040711;
+  --tc-canvas-radial: radial-gradient(circle at 15% 0%, rgba(56, 189, 248, 0.14) 0%, transparent 45%),
+                      radial-gradient(circle at 85% 100%, rgba(139, 92, 246, 0.10) 0%, transparent 50%),
+                      radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.5) 0%, #040711 100%);
+  
+  --tc-glass-bg: rgba(9, 14, 28, 0.82);
+  --tc-glass-surface: rgba(14, 22, 42, 0.72);
+  --tc-glass-surface-raised: rgba(20, 32, 60, 0.85);
+  --tc-glass-surface-hover: rgba(26, 42, 78, 0.90);
+  --tc-glass-surface-inset: rgba(6, 10, 20, 0.85);
+
+  /* ── 2. Atmospheric Glass & Hairline Borders ── */
+  --tc-glass-blur: blur(24px) saturate(190%);
+  --tc-border-subtle: rgba(56, 189, 248, 0.12);
+  --tc-border: rgba(56, 189, 248, 0.22);
+  --tc-border-hover: rgba(56, 189, 248, 0.50);
+  --tc-border-focus: #38bdf8;
+  --tc-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.16);
+
+  /* ── 3. Cybernetic Glowing Chromatic Accents ── */
+  --tc-cyan: #38bdf8;
+  --tc-cyan-tint: rgba(56, 189, 248, 0.12);
+  --tc-cyan-border: rgba(56, 189, 248, 0.35);
+  --tc-cyan-glow: 0 0 20px rgba(56, 189, 248, 0.40);
+
+  --tc-teal: #2dd4bf;
+  --tc-teal-tint: rgba(45, 212, 191, 0.12);
+  --tc-teal-border: rgba(45, 212, 191, 0.35);
+  --tc-teal-glow: 0 0 20px rgba(45, 212, 191, 0.40);
+
+  --tc-mint: #10b981;
+  --tc-mint-tint: rgba(16, 185, 129, 0.12);
+  --tc-mint-border: rgba(16, 185, 129, 0.35);
+  --tc-mint-glow: 0 0 20px rgba(16, 185, 129, 0.40);
+
+  --tc-amber: #fbbf24;
+  --tc-amber-tint: rgba(251, 191, 36, 0.12);
+  --tc-amber-border: rgba(251, 191, 36, 0.35);
+  --tc-amber-glow: 0 0 20px rgba(251, 191, 36, 0.40);
+
+  --tc-rose: #f43f5e;
+  --tc-rose-tint: rgba(244, 63, 94, 0.14);
+  --tc-rose-border: rgba(244, 63, 94, 0.40);
+  --tc-rose-glow: 0 0 22px rgba(244, 63, 94, 0.45);
+
+  --tc-purple: #a855f7;
+  --tc-purple-tint: rgba(168, 85, 247, 0.14);
+  --tc-purple-border: rgba(168, 85, 247, 0.35);
+  --tc-purple-glow: 0 0 20px rgba(168, 85, 247, 0.40);
+
+  /* ── 4. High-Contrast Typography ── */
+  --tc-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
+  --tc-font-mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  --tc-text-primary: #f8fafc;
+  --tc-text-secondary: #cbd5e1;
+  --tc-text-muted: #94a3b8;
+  --tc-text-faint: #64748b;
+
+  /* ── 5. Layered Depth Shadows ── */
+  --tc-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --tc-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.60), 0 0 15px rgba(56, 189, 248, 0.08);
+  --tc-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.75), 0 0 25px rgba(56, 189, 248, 0.12);
+  --tc-shadow-glow: 0 0 30px rgba(56, 189, 248, 0.18);
+}
+
+/* ==========================================================================
+   BASE WORKSPACE WRAPPER
+   ========================================================================== */
+.tc-workspace {
+  background: var(--tc-canvas);
+  background-image: var(--tc-canvas-radial);
+  color: var(--tc-text-primary);
+  font-family: var(--tc-font-sans);
+  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  box-sizing: border-box;
+  position: relative;
+  pointer-events: auto !important;
+}
+
+.tc-workspace button,
+.tc-workspace input,
+.tc-workspace a,
+.tc-workspace select,
+.tc-workspace textarea,
+.tc-workspace [role="tab"],
+.tc-workspace [role="button"] {
+  pointer-events: auto !important;
+  cursor: pointer;
+}
+
+.tc-workspace input,
+.tc-workspace textarea {
+  cursor: text;
+}
+
+.tc-workspace::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(56, 189, 248, 0.02) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(56, 189, 248, 0.02) 1px, transparent 1px);
+  background-size: 32px 32px;
+  z-index: 0;
+  opacity: 0.8;
+}
+
+.tc-workspace *,
+.tc-workspace *::before,
+.tc-workspace *::after {
+  box-sizing: inherit;
+}
+
+/* ==========================================================================
+   1. NAVIGATION BAR (Aerospace Command Header)
+   ========================================================================== */
+.tc-navbar {
+  height: 56px;
+  background: rgba(8, 13, 26, 0.85);
+  backdrop-filter: var(--tc-glass-blur);
+  -webkit-backdrop-filter: var(--tc-glass-blur);
+  border-bottom: 1px solid var(--tc-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--tc-shadow-md), var(--tc-specular);
+  flex-shrink: 0;
+}
+
+.tc-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tc-brand-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(14, 165, 233, 0.08) 100%);
+  border: 1px solid var(--tc-cyan);
+  box-shadow: var(--tc-cyan-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tc-cyan);
+  flex-shrink: 0;
+}
+
+.tc-brand-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.tc-brand-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #fff;
+}
+
+.tc-brand-main span:first-child {
+  background: linear-gradient(90deg, #ffffff 0%, #bae6fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.tc-instructor-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--tc-cyan);
+  background: var(--tc-cyan-tint);
+  border: 1px solid var(--tc-cyan-border);
+  padding: 2px 7px;
+  border-radius: 9999px;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+}
+
+.tc-session-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid var(--tc-border);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-family: var(--tc-font-mono);
+  font-size: 12px;
+  color: var(--tc-cyan);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.tc-session-tag code {
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #fff;
+}
+
+.tc-copy-icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--tc-text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.tc-copy-icon-btn:hover {
+  color: var(--tc-cyan);
+  background: var(--tc-cyan-tint);
+  transform: scale(1.1);
+}
+
+/* ── Segmented Navigation Tabs ── */
+.tc-nav-tabs {
+  display: flex;
+  align-items: center;
+  background: rgba(6, 10, 22, 0.85);
+  border: 1px solid var(--tc-border-subtle);
+  border-radius: 9999px;
+  padding: 3px;
+  gap: 4px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.tc-nav-tab {
+  background: transparent;
+  border: none;
+  color: var(--tc-text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.tc-nav-tab:hover {
+  color: var(--tc-text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tc-nav-tab--active {
+  color: #fff;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.35) 0%, rgba(14, 165, 233, 0.15) 100%);
+  border: 1px solid var(--tc-cyan);
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.tc-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tc-clock-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid var(--tc-border-subtle);
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-family: var(--tc-font-mono);
+  font-size: 12px;
+  color: var(--tc-cyan);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.tc-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--tc-mint);
+  background: var(--tc-mint-tint);
+  border: 1px solid var(--tc-mint-border);
+  box-shadow: var(--tc-mint-glow);
+}
+
+.tc-pulse-beacon {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--tc-mint);
+  box-shadow: 0 0 8px var(--tc-mint);
+  animation: tcPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes tcPulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.3); filter: drop-shadow(0 0 6px var(--tc-mint)); }
+}
+
+/* ==========================================================================
+   2. KPI HUD TELEMETRY BAR (TeacherStatsBar)
+   ========================================================================== */
+.tc-hud-bar {
+  background: rgba(8, 14, 28, 0.80);
+  backdrop-filter: var(--tc-glass-blur);
+  -webkit-backdrop-filter: var(--tc-glass-blur);
+  border-bottom: 1px solid var(--tc-border);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 20px;
+  flex-shrink: 0;
+  box-shadow: var(--tc-shadow-sm);
+  z-index: 10;
+}
+
+.tc-hud-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.tc-hud-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid var(--tc-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tc-cyan);
+}
+
+.tc-hud-label {
+  color: var(--tc-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.tc-hud-number {
+  font-size: 15px;
+  font-weight: 800;
+  font-family: var(--tc-font-mono);
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+.tc-hud-sub {
+  font-size: 11.5px;
+  color: var(--tc-text-secondary);
+}
+
+.tc-hud-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.tc-hud-item--right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tc-demo-toggle-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--tc-border);
+  color: var(--tc-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.tc-demo-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: var(--tc-cyan);
+}
+
+.tc-demo-toggle-btn--active {
+  background: var(--tc-cyan-tint);
+  border-color: var(--tc-cyan);
+  color: var(--tc-cyan);
+  box-shadow: var(--tc-cyan-glow);
+}
+
+/* ==========================================================================
+   3. TWO-COLUMN WORKSPACE LAYOUT (65% Teams / 35% Sidebar)
+   ========================================================================== */
+.tc-two-col-workspace {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 5;
+}
+
+.tc-primary-area {
+  flex: 65;
+  min-width: 0;
+  padding: 20px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tc-stage-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 2px;
+}
+
+.tc-filter-pillbox {
+  display: flex;
+  align-items: center;
+  background: rgba(8, 14, 28, 0.85);
+  border: 1px solid var(--tc-border-subtle);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.tc-filter-pill {
+  background: transparent;
+  border: none;
+  color: var(--tc-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tc-filter-pill:hover {
+  color: var(--tc-text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tc-filter-pill--active {
+  color: #fff;
+  background: var(--tc-cyan-tint);
+  border: 1px solid var(--tc-cyan-border);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+}
+
+.tc-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.tc-search-icon-svg {
+  position: absolute;
+  left: 12px;
+  color: var(--tc-text-muted);
+  pointer-events: none;
+}
+
+.tc-search-input-field {
+  background: rgba(8, 14, 28, 0.85);
+  border: 1px solid var(--tc-border-subtle);
+  color: #fff;
+  font-size: 12.5px;
+  padding: 7px 14px 7px 34px;
+  border-radius: 8px;
+  width: 260px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.tc-search-input-field:focus {
+  border-color: var(--tc-cyan);
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+  width: 300px;
+}
+
+/* ==========================================================================
+   4. SECTOR CARDS (TeacherTeamCard & 4-Desk Tactical Pod)
+   ========================================================================== */
+.tc-team-card {
+  background: var(--tc-glass-bg);
+  backdrop-filter: var(--tc-glass-blur);
+  -webkit-backdrop-filter: var(--tc-glass-blur);
+  border: 1px solid var(--tc-border);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: var(--tc-shadow-md), var(--tc-specular);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tc-team-card:hover {
+  border-color: var(--tc-border-hover);
+  box-shadow: var(--tc-shadow-lg), var(--tc-shadow-glow);
+}
+
+.tc-team-card--resolved {
+  border-color: var(--tc-mint-border);
+}
+
+.tc-team-card--resolved::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--tc-mint), transparent);
+  box-shadow: var(--tc-mint-glow);
+}
+
+.tc-team-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tc-team-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tc-team-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(14, 165, 233, 0.08) 100%);
+  border: 1px solid var(--tc-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--tc-font-mono);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--tc-cyan);
+  box-shadow: var(--tc-cyan-glow);
+}
+
+.tc-team-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.tc-team-target-tag {
+  font-size: 11px;
+  font-family: var(--tc-font-mono);
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid var(--tc-cyan-border);
+  color: var(--tc-cyan);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.tc-team-subtitle {
+  font-size: 11.5px;
+  color: var(--tc-text-muted);
+  font-family: var(--tc-font-mono);
+}
+
+/* Status Badges */
+.tc-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.tc-status-badge--resolved {
+  color: var(--tc-mint);
+  background: var(--tc-mint-tint);
+  border: 1px solid var(--tc-mint-border);
+  box-shadow: var(--tc-mint-glow);
+}
+
+.tc-status-badge--progress {
+  color: var(--tc-amber);
+  background: var(--tc-amber-tint);
+  border: 1px solid var(--tc-amber-border);
+  box-shadow: var(--tc-amber-glow);
+}
+
+/* ── Diagnostic & Verification Test Section ── */
+.tc-test-section {
+  background: var(--tc-glass-surface-inset);
+  border: 1px solid var(--tc-border-subtle);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tc-test-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tc-test-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--tc-text-muted);
+}
+
+.tc-test-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tc-test-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.tc-test-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(56, 189, 248, 0.15);
+}
+
+.tc-test-row-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tc-test-code {
+  font-family: var(--tc-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.tc-test-desc {
+  font-size: 12px;
+  color: var(--tc-text-secondary);
+}
+
+.tc-test-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--tc-font-mono);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.tc-test-badge--pass {
+  color: var(--tc-mint);
+  background: var(--tc-mint-tint);
+  border: 1px solid var(--tc-mint-border);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.25);
+}
+
+.tc-test-badge--pending {
+  color: var(--tc-text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── 4-DESK TACTICAL POD ── */
+.tc-roster-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tc-roster-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tc-roster-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--tc-text-muted);
+}
+
+.tc-student-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.tc-student-item {
+  background: var(--tc-glass-surface-inset);
+  border: 1px solid var(--tc-border-subtle);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tc-student-item:hover {
+  border-color: var(--tc-cyan-border);
+  background: var(--tc-glass-surface);
+  transform: translateY(-1px);
+}
+
+.tc-student-item--active {
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.tc-student-initials {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--tc-font-mono);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--tc-cyan);
+  flex-shrink: 0;
+}
+
+.tc-student-initials--active {
+  border-color: var(--tc-cyan);
+  background: var(--tc-cyan-tint);
+  box-shadow: var(--tc-cyan-glow);
+}
+
+.tc-student-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tc-student-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.tc-student-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tc-student-desk {
+  font-size: 10.5px;
+  font-family: var(--tc-font-mono);
+  color: var(--tc-cyan);
+  background: var(--tc-cyan-tint);
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--tc-cyan-border);
+}
+
+.tc-student-action {
+  font-size: 11px;
+  color: var(--tc-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+/* ── Team Card Action Footer ── */
+.tc-team-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--tc-border-subtle);
+  padding-top: 14px;
+}
+
+.tc-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Standard Buttons */
+.tc-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--tc-border);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--tc-shadow-sm);
+  user-select: none;
+}
+
+.tc-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--tc-cyan);
+  transform: translateY(-1px);
+}
+
+.tc-btn:active {
+  transform: translateY(0);
+}
+
+.tc-btn--primary {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.4) 0%, rgba(14, 165, 233, 0.2) 100%);
+  border-color: var(--tc-cyan);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.tc-btn--primary:hover {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.6) 0%, rgba(14, 165, 233, 0.3) 100%);
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.45);
+}
+
+.tc-btn--hint {
+  background: var(--tc-amber-tint);
+  border-color: var(--tc-amber-border);
+  color: var(--tc-amber);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+}
+
+.tc-btn--hint:hover {
+  background: rgba(251, 191, 36, 0.25);
+  border-color: var(--tc-amber);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.4);
+}
+
+.tc-btn--danger {
+  background: var(--tc-rose-tint);
+  border-color: var(--tc-rose-border);
+  color: #fecdd3;
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.25);
+}
+
+.tc-btn--danger:hover {
+  background: rgba(244, 63, 94, 0.35);
+  border-color: var(--tc-rose);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.45);
+}
+
+.tc-btn-subtle {
+  background: transparent;
+  border: none;
+  color: var(--tc-cyan);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.tc-btn-subtle:hover {
+  background: var(--tc-cyan-tint);
+  color: #fff;
+}
+
+/* ==========================================================================
+   5. TACTICAL OPS SIDEBAR (TeacherSidebar)
+   ========================================================================== */
+.tc-sidebar-card {
+  flex: 35;
+  min-width: 360px;
+  max-width: 440px;
+  background: rgba(8, 14, 28, 0.85);
+  backdrop-filter: var(--tc-glass-blur);
+  -webkit-backdrop-filter: var(--tc-glass-blur);
+  border-left: 1px solid var(--tc-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--tc-shadow-lg);
+  z-index: 10;
+}
+
+.tc-sidebar-tabs {
+  display: flex;
+  align-items: center;
+  background: rgba(6, 10, 20, 0.95);
+  border-bottom: 1px solid var(--tc-border);
+  padding: 6px 12px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.tc-sidebar-tab {
+  flex: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--tc-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.tc-sidebar-tab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tc-sidebar-tab--active {
+  color: #fff;
+  background: var(--tc-cyan-tint);
+  border-color: var(--tc-cyan-border);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
+/* ── Live Activity Timeline ── */
+.tc-timeline {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tc-timeline-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--tc-glass-surface-inset);
+  border: 1px solid var(--tc-border-subtle);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.tc-timeline-item:hover {
+  background: var(--tc-glass-surface);
+  border-color: var(--tc-cyan-border);
+  transform: translateX(2px);
+}
+
+.tc-timeline-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tc-timeline-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.tc-timeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.tc-timeline-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.tc-timeline-time {
+  font-size: 10.5px;
+  font-family: var(--tc-font-mono);
+  color: var(--tc-text-muted);
+}
+
+.tc-timeline-desc {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--tc-text-secondary);
+  line-height: 1.4;
+}
+
+/* ── Quick Broadcast Bar ── */
+.tc-broadcast-bar {
+  padding: 14px 16px;
+  background: rgba(6, 10, 20, 0.95);
+  border-top: 1px solid var(--tc-border);
+  flex-shrink: 0;
+}
+
+.tc-broadcast-form {
+  display: flex;
+  gap: 8px;
+}
+
+.tc-broadcast-input {
+  flex: 1;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid var(--tc-border-subtle);
+  color: #fff;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.tc-broadcast-input:focus {
+  border-color: var(--tc-cyan);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+/* ── Conclude Lab Box ── */
+.tc-end-lab-box {
+  padding: 14px 16px;
+  background: rgba(244, 63, 94, 0.05);
+  border-top: 1px solid rgba(244, 63, 94, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   6. INCIDENT GUIDE & PROGRESSIVE CLUES
+   ========================================================================== */
+.tc-guide-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tc-guide-scenario-box {
+  background: var(--tc-glass-surface-inset);
+  border: 1px solid var(--tc-border-subtle);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.tc-guide-title {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.tc-guide-desc {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--tc-text-secondary);
+  line-height: 1.45;
+}
+
+.tc-guide-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.tc-guide-meta-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tc-guide-meta-item span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--tc-text-muted);
+}
+
+.tc-guide-meta-item strong {
+  font-size: 11.5px;
+  font-family: var(--tc-font-mono);
+  color: var(--tc-cyan);
+}
+
+.tc-clue-card {
+  background: var(--tc-glass-surface-inset);
+  border: 1px solid var(--tc-amber-border);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.tc-clue-card:hover {
+  background: var(--tc-glass-surface);
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.15);
+}
+
+.tc-clue-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tc-clue-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: var(--tc-amber);
+  background: var(--tc-amber-tint);
+  border: 1px solid var(--tc-amber-border);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.tc-clue-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.tc-clue-body {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--tc-text-secondary);
+  line-height: 1.45;
+}
+
+/* ── Code Diff Terminal View ── */
+.tc-code-diff {
+  background: #060913;
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 0;
+  font-family: var(--tc-font-mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  overflow-x: auto;
+  color: var(--tc-text-secondary);
+}
+
+.tc-diff-add {
+  color: var(--tc-mint);
+  background: rgba(16, 185, 129, 0.12);
+  display: block;
+  padding: 1px 4px;
+  border-left: 2px solid var(--tc-mint);
+}
+
+.tc-diff-del {
+  color: var(--tc-rose);
+  background: rgba(244, 63, 94, 0.12);
+  display: block;
+  padding: 1px 4px;
+  border-left: 2px solid var(--tc-rose);
+}
+
+/* ==========================================================================
+   7. ACCESSIBLE MODALS (High-Tech Glass Dialogs)
+   ========================================================================== */
+.tc-modal {
+  background: rgba(10, 16, 32, 0.95);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  border: 1px solid var(--tc-border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85), 0 0 30px rgba(56, 189, 248, 0.2);
+  color: #fff;
+  width: 90vw;
+  max-width: 520px;
+  outline: none;
+}
+
+.tc-modal::backdrop {
+  background: rgba(2, 6, 18, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.tc-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--tc-border-subtle);
+}
+
+.tc-modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+}
+
+.tc-modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--tc-text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.tc-modal-close-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tc-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ==========================================================================
+   8. CLASS ROSTER & COMMUNICATIONS SCREENS
+   ========================================================================== */
+.tc-roster-view {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  z-index: 5;
+}
+
+.tc-roster-table-container {
+  background: var(--tc-glass-bg);
+  backdrop-filter: var(--tc-glass-blur);
+  -webkit-backdrop-filter: var(--tc-glass-blur);
+  border: 1px solid var(--tc-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--tc-shadow-md);
+}
+
+.tc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.tc-table th {
+  background: rgba(6, 10, 20, 0.85);
+  padding: 12px 18px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--tc-text-muted);
+  border-bottom: 1px solid var(--tc-border-subtle);
+}
+
+.tc-table td {
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--tc-text-secondary);
+}
+
+.tc-table tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ==========================================================================
+   9. DEBRIEF SCREEN & LIVE STANDINGS
+   ========================================================================== */
+.tc-debrief-screen {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  z-index: 5;
+}
+
+.tc-debrief-banner {
+  background: var(--tc-glass-bg);
+  backdrop-filter: var(--tc-glass-blur);
+  -webkit-backdrop-filter: var(--tc-glass-blur);
+  border: 1px solid var(--tc-border);
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--tc-shadow-lg);
+}
+
+/* Animation utilities */
+.tc-spin {
+  animation: tcSpin 1s linear infinite;
+}
+
+@keyframes tcSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -6,3 +6,4 @@ spikes/m01b/client/node_modules/
 spikes/m01b/server/node_modules/
 spikes/m01b/client/dist/
 spikes/m01b/server/dist/
+__pycache__/
